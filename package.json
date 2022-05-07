@@ -1,5 +1,5 @@
 {
-  "name": "object-filter",
+  "name": "@jericirenej/object-filter",
   "description": "Return an object with trimmed properties based on supplied list of keys and a filter type (include | exclude).",
   "author": "Irenej Jeric",
   "version": "1.0.0",
