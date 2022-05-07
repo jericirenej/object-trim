@@ -1,0 +1,46 @@
+{
+  "name": "object-trim",
+  "description": "Return an object with trimmed properties based on supplied list of keys and a filter type (include | exclude).",
+  "author": "Irenej Jeric",
+  "version": "1.0.0",
+  "license": "ISC",
+  "main": "dist/index",
+  "typings": "dist/index",
+  "type": "module",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "scripts": {
+    "test": "jest",
+    "prepublishOnly": "npm run compile",
+    "publish": "npm publish --access public",
+    "compile": "npm run clean && tsc -p",
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jericirenej/object-trim.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jericirenej/object-trim/issues"
+  },
+  "keywords": [
+    "no dependencies",
+    "object",
+    "filter",
+    "trim"
+  ],
+  "devDependencies": {
+    "@types/jest": "^27.5.0",
+    "@types/node": "^17.0.31",
+    "@typescript-eslint/eslint-plugin": "^5.22.0",
+    "@typescript-eslint/parser": "^5.22.0",
+    "eslint": "^8.15.0",
+    "jest": "^28.1.0",
+    "ts-jest": "^28.0.1",
+    "tsc-watch": "^5.0.3",
+    "typescript": "^4.6.4"
+  }
+}
