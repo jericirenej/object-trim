@@ -1,14 +1,30 @@
-import type { ObjectTrim } from "./types.js";
+import { VALID_FILTER_TYPES } from "./constants";
+import type { ValidTypes } from "./types";
 /** Filter an object based on its keys that are checked against a string array.
- *  Supply a configuration object, that has the targetObject, filterType, and filterKeys present.
+ *  Supply a configuration object, that has the targetObject, filterType, and filters properties.
  * Two types of filtering available in filterType:
- *  * *include*: will return an object that includes **the filter keys only**.
- *  * *exclude*: will return an object that **excludes the filter keys**.
+ *  * *include*: will return an object that includes **only the filter keys** (excludes all others).
+ *  * *exclude*: will return an object that **excludes the filter keys** (includes all others).
  */
-const objectTrim: ObjectTrim = args => {
-  const { filterType, filterKeys, targetObject } = args;
+const objectTrim = (config: {
+  targetObject: Record<string, any>;
+  filterType: ValidTypes;
+  filters: string | string[];
+}) => {
+  const {
+    targetObject,
+    filterType,
+    filters
+  } = config;
   const returnObj: Record<string, any> = {};
+
+  if (!VALID_FILTER_TYPES.includes(filterType)) return targetObject;
+
   const objKeys = Object.keys(targetObject);
+  const filterKeys = Array.isArray(filters)
+    ? [...filters]
+    : [filters];
+
   const checkedFilterKeys = filterKeys.filter((key: string) =>
     objKeys.includes(key)
   );
@@ -18,12 +34,11 @@ const objectTrim: ObjectTrim = args => {
 
   const targetKeys = objKeys.filter(key => {
     const isAmongCheckedKeys = checkedFilterKeys.includes(key);
-    if (filterType === "include") {
-      return isAmongCheckedKeys;
-    }
-    return !isAmongCheckedKeys;
+    return filterType === "include" ? isAmongCheckedKeys : !isAmongCheckedKeys;
   });
+
   targetKeys.forEach(key => (returnObj[key] = targetObject[key]));
+
   return returnObj;
 };
 

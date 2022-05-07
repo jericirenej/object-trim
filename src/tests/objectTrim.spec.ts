@@ -1,35 +1,42 @@
 import objectTrim from "../index";
+import { ValidTypes } from "../types.js";
 describe("objectTrim", () => {
   const targetObject: Record<string, any> = {};
   const objKeys = ["one", "two", "three", "four"];
   objKeys.forEach(key => (targetObject[key] = key));
-  it("Include filterType should return object with filterKeys only", () => {
-    const filterKeys = ["one", "two"];
+  it("Include filterType should return object with filter keys only", () => {
+    const filters = ["one", "two"];
     const filteredObj = objectTrim({
       targetObject,
-      filterKeys,
+      filters,
       filterType: "include",
     });
     const keys = Object.keys(filteredObj);
-    expect(keys.length).toBe(filterKeys.length);
-    expect(keys).toEqual(filterKeys);
+    expect(keys.length).toBe(filters.length);
+    expect(keys).toEqual(filters);
   });
-  it("Exclude filterType should return object without filterKeys", () => {
-    const filterKeys = ["one"];
-    const expectedLength = objKeys.length - filterKeys.length;
+  it("Exclude filterType should return object without filter keys", () => {
+    const filters = ["one"];
+    const expectedLength = objKeys.length - filters.length;
     const filteredObj = objectTrim({
       targetObject,
-      filterKeys,
+      filters,
       filterType: "exclude",
     });
     const keys = Object.keys(filteredObj);
     expect(keys.length).toBe(expectedLength);
-    filterKeys.forEach(key => expect(keys.includes(key)).toBe(false));
+    filters.forEach(key => expect(keys.includes(key)).toBe(false));
   });
-  it("Should ignore filterKeys that are not part of the object", () => {
+  it("Should properly parse a string filters argument", ()=> {
+    const filters = "one";
+    const expectedLength = objKeys.length - 1;
+    const filteredObj = objectTrim({targetObject, filters, filterType: "exclude"});
+    expect(Object.keys(filteredObj).length).toBe(expectedLength);
+  })
+  it("Should ignore filters that are not part of the object", () => {
     const validFilters = ["one"];
-    const filterKeys = [...validFilters, "invalidKey"];
-    const args = { targetObject, filterKeys, filterType: "include" } as const;
+    const filters = [...validFilters, "invalidKey"];
+    const args = { targetObject, filters, filterType: "include" } as const;
     const filteredInclude = objectTrim(args);
     const keysInclude = Object.keys(filteredInclude);
     expect(keysInclude.length).toBe(validFilters.length);
@@ -39,16 +46,20 @@ describe("objectTrim", () => {
     const keysExclude = Object.keys(filteredExclude);
     expect(keysExclude.length).toBe(objKeys.length - validFilters.length);
   });
-  it("Should return original object if filterKeys are empty or none of them are in the targetObject", () => {
-    [[], ["invalidKey"]].forEach(filterKeys => {
+  it("Should return original object if filters are empty or none of them are in the targetObject", () => {
+    [[], ["invalidKey"]].forEach(filters => {
       (["exclude", "include"] as const).forEach(filterType => {
         const filteredObj = objectTrim({
           targetObject,
-          filterKeys,
+          filters,
           filterType,
         });
         expect(filteredObj).toEqual(targetObject);
       });
     });
   });
+  it("Should return original object, if an invalid filterType is passed", ()=> {
+    const filteredObj = objectTrim({targetObject, filters:"one", filterType: "invalidType" as ValidTypes});
+    expect(filteredObj).toEqual(targetObject);
+  })
 });
