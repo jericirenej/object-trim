@@ -4,12 +4,12 @@
   "author": "Irenej Jeric",
   "version": "1.0.0",
   "license": "ISC",
-  "main": "dist/index",
+  "main": "./dist/index.js",
   "typings": "dist/index",
   "type": "module",
   "files": [
-    "dist/index.js",
-    "dist/index.d.ts"
+    "./dist/index.js",
+    "./dist/index.d.ts"
   ],
   "scripts": {
     "test": "jest",
@@ -18,7 +18,7 @@
     "publish": "npm publish --access public",
     "compile": "npm run clean && tsc -p",
     "build": "tsc",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist/*"
   },
   "repository": {
     "type": "git",
