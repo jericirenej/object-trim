@@ -62,6 +62,13 @@ describe("objectTrim", () => {
       });
     });
   });
+  it("Should default to 'exclude' type, if filterType is not passed", () => {
+    const filteredObj = objectFilter({
+      targetObject,
+      filters: "one",
+    });
+    expect(Object.keys(filteredObj).length).toBe(objKeys.length - 1);
+  });
   it("Should return original object, if an invalid filterType is passed", () => {
     const filteredObj = objectFilter({
       targetObject,

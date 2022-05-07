@@ -11,17 +11,17 @@ const objectFilter = (config: ObjectArgs): Record<string, any> => {
   if (recursive) {
     return executeRecursiveFilter(config);
   }
-  return executeObjectFilter(targetObject, filterType, filters);
+  return executeObjectFilter(targetObject, filters, filterType);
 };
 
 const executeObjectFilter = (
   targetObject: Record<string, any>,
-  filterType: ValidTypes,
-  filters: string | string[]
+  filters: string | string[],
+  filterType?: ValidTypes
 ): Record<string, any> => {
   const filteredObject: Record<string, any> = {};
 
-  if (!VALID_FILTER_TYPES.includes(filterType)) return targetObject;
+  if (filterType !== undefined && !VALID_FILTER_TYPES.includes(filterType)) return targetObject;
 
   const objKeys = Object.keys(targetObject);
   const filterKeys = Array.isArray(filters) ? [...filters] : [filters];
@@ -49,8 +49,8 @@ const executeRecursiveFilter = (config: ObjectArgs): Record<string, any> => {
     const { targetObject, filters, filterType } = config;
     const filteredObject = executeObjectFilter(
       targetObject,
-      filterType,
-      filters
+      filters,
+      filterType
     );
     for (const name in filteredObject) {
       const property = filteredObject[name];

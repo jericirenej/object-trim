@@ -1,7 +1,7 @@
 export type ValidTypes = "include" | "exclude";
 export interface ObjectArgs {
   targetObject: Record<string,any>;
-  filterType: ValidTypes;
+  filterType?: ValidTypes;
   filters: string | string[];
   recursive?: boolean;
 }
