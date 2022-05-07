@@ -1,5 +1,5 @@
 {
-  "name": "object-trim",
+  "name": "object-filter",
   "description": "Return an object with trimmed properties based on supplied list of keys and a filter type (include | exclude).",
   "author": "Irenej Jeric",
   "version": "1.0.0",
@@ -22,10 +22,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jericirenej/object-trim.git"
+    "url": "https://github.com/jericirenej/object-filter.git"
   },
   "bugs": {
-    "url": "https://github.com/jericirenej/object-trim/issues"
+    "url": "https://github.com/jericirenej/object-filter/issues"
   },
   "keywords": [
     "no dependencies",

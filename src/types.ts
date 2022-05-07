@@ -1,8 +1,9 @@
 export type ValidTypes = "include" | "exclude";
 export interface ObjectArgs {
-  targetObject: Record<string, any>;
+  targetObject: Record<string,any>;
   filterType: ValidTypes;
-  filterKeys: string|string[];
+  filters: string | string[];
+  recursive?: boolean;
 }
 
 export type ObjectTrim = (arg: ObjectArgs) => Record<string, any>;
