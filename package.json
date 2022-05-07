@@ -2,23 +2,25 @@
   "name": "@jericirenej/object-filter",
   "description": "Return an object with trimmed properties based on supplied list of keys and a filter type (include | exclude).",
   "author": "Irenej Jeric",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "license": "ISC",
-  "main": "./dist/index.js",
-  "typings": "dist/index",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "type": "module",
   "files": [
-    "./dist/index.js",
-    "./dist/index.d.ts"
+    "dist/index.js",
+    "dist/index.d.ts",
+    "dist/types.d.ts",
+    "README.md"
   ],
   "scripts": {
     "test": "jest",
     "dev": "tsc-watch",
     "prepublishOnly": "npm run compile",
-    "publish": "npm publish --access public",
-    "compile": "npm run clean && tsc -p",
+    "compile": "npm run clean && tsc",
     "build": "tsc",
-    "clean": "rm -rf dist/*"
+    "clean": "rm -rf dist/*.js && npm run copyReadme",
+    "copyReadme": "cp README.md dist/"
   },
   "repository": {
     "type": "git",
@@ -28,9 +30,16 @@
     "url": "https://github.com/jericirenej/object-filter/issues"
   },
   "keywords": [
-    "no dependencies",
+    "no-dependencies",
+    "nodependencies",
+    "zero-dependencies",
+    "zerodependencies",
     "object",
+    "object-filter",
+    "javascript",
+    "typescript",
     "filter",
+    "object-trim",
     "trim"
   ],
   "prettier": {
