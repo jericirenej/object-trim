@@ -1,5 +1,9 @@
-import { VALID_FILTER_TYPES } from "./constants";
 import type { ObjectArgs, ValidTypes } from "./types";
+
+const VALID_FILTER_TYPES: ValidTypes[] = Array.from(
+  new Set(["exclude", "include"])
+);
+
 /** Filter an object based on its keys that are checked against a string array.
  *  Supply a configuration object, that has the targetObject, filterType, and filters properties.
  * Two types of filtering available in filterType:
@@ -21,7 +25,8 @@ const executeObjectFilter = (
 ): Record<string, any> => {
   const filteredObject: Record<string, any> = {};
 
-  if (filterType !== undefined && !VALID_FILTER_TYPES.includes(filterType)) return targetObject;
+  if (filterType !== undefined && !VALID_FILTER_TYPES.includes(filterType))
+    return targetObject;
 
   const objKeys = Object.keys(targetObject);
   const filterKeys = Array.isArray(filters) ? [...filters] : [filters];
