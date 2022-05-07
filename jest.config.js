@@ -1,4 +1,11 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
-export const preset = "ts-jest/presets/js-with-ts-esm";
-export const testEnvironment = "node";
-export const maxWorkers = 1;
+export default {
+  preset: "ts-jest/presets/js-with-ts-esm",
+  testEnvironment: "node",
+  maxWorkers: 1,
+  globals: {
+    "ts-jest": {
+      useESM: true,
+    },
+  },
+};
