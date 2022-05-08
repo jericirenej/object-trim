@@ -1,25 +1,23 @@
 # Object filtering
-
 **Easily filter object by their properties - then get the filtered object back!**
-- Two types of filtering available: 1) exclude all of the supplied property names, 2) include only the supplied property names.
-- Recursive filtering available.
+- Two types of filtering available: that will either 1) either exclude all of the matched properties or 2) include only the matched properties.
+- Recursive filtering option.
   - Recursive filtering will not inspect arrays, sets, and maps.
 
 ## Usage
-
 - Install the package via `npm install @jericirenej/object-filter`.
-  - You can also clone the repo and transpile the files manually, by first running `npm install` and then `npx tsc`. The files will be located in the `dist` folder.
-- Import the objectFilter function (ES6 import), then supply it with the appropriate config object to get the result.
+  - You can also clone the repo and transpile the files manually (`npm install`, followed by `npx tsc` which will transpile to `dist`).
+- Import the objectFilter function and pass it the appropriate configuration object.
 
 ```ts
 import objectFilter from "object-filter";
 
 /*
-configObjectType: {
+objectFilterConfig: {
   targetObject: Record<string,any>,
   filters: string|string[],
-  filterType: "include"|"exclude",  --- will default to exclude, if not provided
-  recursive?:boolean,               --- by default, recursive filtering is off.
+  filterType?: "include"|"exclude",  --- defaults to exclude.
+  recursive?:boolean,                --- defaults to false.
 
 }
 */
@@ -29,14 +27,14 @@ const employeeInfo = {
   surname: "Doe",
   personalInfo: {
     age: 30,
-    sensitiveInfo1: "secret",
+    sensitive1: "secret",
   },
-  sensitiveInfo2: "secret",
+  sensitive2: "secret",
 };
 
 const excludeSensitive = {
   targetObject: employeeInfo,
-  filters: ["sensitiveInfo1", "sensitiveInfo2"],
+  filters: ["sensitive1", "sensitive2"],
   filterType: "exclude",
   recursive: true,
 };
@@ -53,7 +51,7 @@ const cleanedEmployeeInfo = objectFilter(excludeSensitive);
 
 const includeSensitive = {
   targetObject: employeeInfo,
-  filters: ["personalInfo", "sensitiveInfo1", "sensitiveInfo2"],
+  filters: ["personalInfo", "sensitive1", "sensitive2"],
   filterType: "include",
   recursive: true,
 }
@@ -62,20 +60,19 @@ const sensitiveEmployeeInfo = objectFilter(includeSensitive);
 
 //Will return
 {
-  sensitiveInfo2: "secret",
+  sensitive2: "secret",
   personalInfo: {
-    sensitiveInfo1: "secret,
+    sensitive1: "secret,
   }
 }
 
 ```
 
 ### Things to note
-
-- The function will default to `exclude` if no `filterType` is supplied.
 - If an _invalid_ `filterType` is supplied, the original object will be returned unmodified.
-- If you are using the `include` filterType, together with the `recursive` option, please note, that if one of the filters refers to a nested property, you will have to specify their parent as well, as it will be filtered out otherwise, before the nested property could be reached (the case of including the "personalInfo" filter in the example above).
+- When using the `include` filterType together with the `recursive` option, please note, that if filters target a nested property, their parent has to be provided as well, as it will be filtered out otherwise.
 - If you are working with `TypeScript`, make sure to type cast the returned object, as its type will be `Record<string,any>` by default.
 
 ## Planned additional features
 * Regex matching of properties.
+* Tranpoline recursive calls.
