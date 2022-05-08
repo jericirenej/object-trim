@@ -1,5 +1,4 @@
-import objectFilter from "../index";
-import { ValidTypes } from "../types.js";
+import objectFilter, { type ValidTypes } from "../index";
 describe("objectTrim", () => {
   const targetObject: Record<string, any> = {};
   const objKeys = ["one", "two", "three", "four"];
@@ -102,9 +101,9 @@ describe("objectTrim", () => {
       });
     });
     it("Should not filter arrays, maps, and sets", () => {
-      const arr = [1, 2, 3],
-        set = new Set([1, 2, 3]),
-        map = new Map([["one", 1]]);
+      const arr = [1, 2, targetProp],
+        set = new Set([1, 2, targetProp]),
+        map = new Map([[targetProp, targetProp]]);
       const expandedTarget = {
         ...targetObject,
         arr,
@@ -116,12 +115,20 @@ describe("objectTrim", () => {
         ...baseArgs,
         targetObject: expandedTarget,
         filterType: "exclude",
-      });
-      const firstLevelKeys = Object.keys(filteredObj);
-      const nestedKeys = Object.keys(filteredObj.secondNesting);
-      [firstLevelKeys, nestedKeys].forEach(keys => {
-        const targetKeys = ["arr", "set", "map"];
-        expect(targetKeys.every(key => keys.includes(key))).toBe(true);
+      }) as Partial<typeof expandedTarget>;
+      const targetKeys = ["arr", "set", "map"] as const;
+      targetKeys.forEach(key => {
+        if (key === "arr") {
+          expect(filteredObj[key]!.includes(targetProp)).toBe(true);
+          expect(filteredObj.secondNesting![key]!.includes(targetProp)).toBe(
+            true
+          );
+        } else {
+          expect(filteredObj[key]!.has(targetProp)).toBe(true);
+          expect(filteredObj.secondNesting![key]!.has(targetProp)).toBe(
+            true
+          );
+        }
       });
     });
   });
