@@ -1,42 +1,54 @@
-import type { ObjectArgs, ValidTypes } from "./types";
+"use strict";
+
+// Type declarations
+export type ValidTypes = "include" | "exclude";
+interface ObjectFilterArgs {
+  targetObject: Record<string, any>;
+  filters: string | string[];
+  filterType?: ValidTypes;
+  recursive?: boolean;
+}
 
 const VALID_FILTER_TYPES: ValidTypes[] = Array.from(
   new Set(["exclude", "include"])
 );
+const EXCLUDED_TYPES = [Array, Map, Set] as const;
 
-/** Filter an object based on its keys that are checked against a string array.
- *  Supply a configuration object, that has the targetObject, filterType, and filters properties.
- * Two types of filtering available in filterType:
- *  * *include*: will return an object that includes **only the filter keys** (excludes all others).
- *  * *exclude*: will return an object that **excludes the filter keys** (includes all others).
+/** Filter an object based on matching its key against the provided filters.
+ *  Supply a configuration object with *targetObject*, *filterType*, and *filters* properties.
+ * Two types of filtering available:
+ *  * *include*: includes only the properties that match the filter keys.
+ *  * *exclude*: excludes the properties that match filter keys.
  */
-const objectFilter = (config: ObjectArgs): Record<string, any> => {
-  const { targetObject, filterType, filters, recursive } = config;
-  if (recursive) {
+const objectFilter = (config: {
+  targetObject: Record<string, any>;
+  filters: string | string[];
+  filterType?: "include" | "exclude";
+  recursive?: boolean;
+}): Record<string, any> => {
+  if (config.recursive) {
     return executeRecursiveFilter(config);
   }
-  return executeObjectFilter(targetObject, filters, filterType);
+  return executeObjectFilter(config);
 };
 
 const executeObjectFilter = (
-  targetObject: Record<string, any>,
-  filters: string | string[],
-  filterType?: ValidTypes
+  config: Omit<ObjectFilterArgs, "recursive">
 ): Record<string, any> => {
   const filteredObject: Record<string, any> = {};
-
+  const { filters, targetObject, filterType } = config;
   if (filterType !== undefined && !VALID_FILTER_TYPES.includes(filterType))
     return targetObject;
 
   const objKeys = Object.keys(targetObject);
-  const filterKeys = Array.isArray(filters) ? [...filters] : [filters];
+  if (!objKeys.length) return targetObject;
 
+  const filterKeys = Array.isArray(filters) ? [...filters] : [filters];
   const checkedFilterKeys = filterKeys.filter((key: string) =>
     objKeys.includes(key)
   );
 
-  if (!(objKeys.length && filterKeys.length && checkedFilterKeys.length))
-    return targetObject;
+  if (!(filterKeys.length && checkedFilterKeys.length)) return targetObject;
 
   const targetKeys = objKeys.filter(key => {
     const isAmongCheckedKeys = checkedFilterKeys.includes(key);
@@ -48,28 +60,21 @@ const executeObjectFilter = (
   return filteredObject;
 };
 
-const executeRecursiveFilter = (config: ObjectArgs): Record<string, any> => {
-  const excludedObjectTypes = [Array, Map, Set];
-  const filterAndEvaluate = (config: ObjectArgs): Record<string, any> => {
-    const { targetObject, filters, filterType } = config;
-    const filteredObject = executeObjectFilter(
-      targetObject,
-      filters,
-      filterType
-    );
+const executeRecursiveFilter = (
+  config: ObjectFilterArgs
+): Record<string, any> => {
+  const filterAndEvaluate = (config: ObjectFilterArgs): Record<string, any> => {
+    const filteredObject = executeObjectFilter(config);
     for (const name in filteredObject) {
       const property = filteredObject[name];
-      const isObject =
-        excludedObjectTypes.every(type => !(property instanceof type)) &&
+      const isValidObject =
+        EXCLUDED_TYPES.every(type => !(property instanceof type)) &&
         typeof property === "object";
-      if (isObject) {
-        const newProperties = () =>
-          filterAndEvaluate({
-            targetObject: property,
-            filters,
-            filterType,
-          });
-        filteredObject[name] = newProperties();
+      if (isValidObject) {
+        filteredObject[name] = filterAndEvaluate({
+          ...config,
+          targetObject: property,
+        });
       }
     }
     return filteredObject;
