@@ -69,6 +69,7 @@ const sensitiveEmployeeInfo = objectFilter(includeSensitive);
 ```
 
 ### Things to note
+- Although the filterObject function creates a new object based on the old one, **this is a shallow copy, not a clone"**. If you need to ensure immutability, use an appropriate library (`lodash`, `immer`), to clone the result.
 - If an _invalid_ `filterType` is supplied, the original object will be returned unmodified.
 - When using the `include` filterType together with the `recursive` option, please note, that if filters target a nested property, their parent has to be provided as well, as it will be filtered out otherwise.
 - If you are working with `TypeScript`, make sure to type cast the returned object, as its type will be `Record<string,any>` by default.
