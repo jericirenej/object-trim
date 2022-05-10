@@ -12,7 +12,7 @@ export const earlyReturnChecks = (
   if (filterType !== undefined && !VALID_FILTER_TYPES.includes(filterType))
     return true;
 
-  if (!Object.keys(targetObject).length) return true;
+  if (!targetObject || !Object.keys(targetObject).length) return true;
 
   // Check filters. If an array is provided, check
   // that the length is truthy, once filtered for allowed values.
