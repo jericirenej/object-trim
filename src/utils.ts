@@ -33,6 +33,34 @@ export const earlyReturnChecks = (
   return false;
 };
 
+export const formatFilters = (
+  filters: string | string[]|undefined,
+  regexFilters: string | RegExp | (string | RegExp)[]|undefined
+): { filterKeys: string[]; regexKeys: RegExp[] } => {
+  const filterKeys = !filters
+    ? []
+    : Array.isArray(filters)
+    ? [...filters]
+    : [filters];
+
+  const singleRegexHandler = (regex: string | RegExp): RegExp | void => {
+    if (regex instanceof RegExp) return regex;
+    if (typeof regex === "string") return new RegExp(regex);
+  };
+  let regexKeys: RegExp[] = [];
+  // First handle instance, where regexFilters is a valid array
+  if (Array.isArray(regexFilters) && regexFilters.length) {
+    regexFilters.forEach(regexFilter => {
+      const regex = singleRegexHandler(regexFilter);
+      if (regex) regexKeys.push(regex);
+    });
+  }
+  // If regexFilters is not an array
+  const regex = singleRegexHandler(regexFilters as string | RegExp);
+  if (regex) regexKeys.push(regex);
+  return { filterKeys, regexKeys };
+};
+
 export const filterByRegex = (
   objKeys: string[],
   regexKeys: RegExp[]
