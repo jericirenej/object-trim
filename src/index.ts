@@ -1,6 +1,6 @@
 "use strict";
 
-import { earlyReturnChecks, filterByRegex } from "./utils";
+import { earlyReturnChecks, filterByRegex, formatFilters } from "./utils";
 
 // Type declarations
 export type ValidTypes = "include" | "exclude";
@@ -27,7 +27,6 @@ const objectFilter = (config: {
   recursive?: boolean;
 }): Record<string, any> => {
   if (earlyReturnChecks(config)) return config.targetObject;
-
   if (config.recursive) {
     return executeRecursiveFilter(config);
   }
@@ -41,25 +40,18 @@ const executeObjectFilter = (
   const { filters, targetObject, filterType, regexFilters } = config;
   const objKeys = Object.keys(targetObject);
 
-  const filterKeys = !filters
-    ? []
-    : Array.isArray(filters)
-    ? [...filters]
-    : [filters];
-  const regexKeys = !regexFilters
-    ? []
-    : Array.isArray(regexFilters)
-    ? regexFilters.map(regexFilter => new RegExp(regexFilter, "u"))
-    : [new RegExp(regexFilters, "u")];
+  const { filterKeys, regexKeys } = formatFilters(filters, regexFilters);
 
   const checkedFilterKeys = filterKeys.filter((key: string) =>
     objKeys.includes(key)
   );
 
-  const checkedRegexKeys = filterByRegex(
-    objKeys.filter(key => !checkedFilterKeys.includes(key)),
-    regexKeys
-  );
+  const checkedRegexKeys = regexKeys.length
+    ? filterByRegex(
+        objKeys.filter(key => !checkedFilterKeys.includes(key)),
+        regexKeys
+      )
+    : [];
   if (!(checkedFilterKeys.length || checkedRegexKeys.length))
     return targetObject;
 
