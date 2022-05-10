@@ -1,17 +1,18 @@
 import type { ObjectFilterArgs, ValidTypes } from "../index";
-import { earlyReturnChecks } from "../utils";
+import { earlyReturnChecks, filterByRegex } from "../utils";
+
+const targetObject = { first: "first", second: "second" };
+const filters = ["first"];
+const regexFilters = [/fIrSt/i, "second"];
+const filterType = "exclude";
+const exampleArgs: Omit<ObjectFilterArgs, "recursive"> = {
+  targetObject,
+  filters,
+  regexFilters,
+  filterType,
+};
 
 describe("earlyReturnChecks", () => {
-  const targetObject = { first: "first", second: "second" };
-  const filters = ["first"];
-  const regexFilters = [/fIrSt/i, "second"];
-  const filterType = "exclude";
-  const exampleArgs: Omit<ObjectFilterArgs, "recursive"> = {
-    targetObject,
-    filters,
-    regexFilters,
-    filterType,
-  };
   it("Should return true if empty object is provided or if targetObject is undefined", () => {
     ([{}, undefined] as any[]).forEach(targetObject =>
       expect(earlyReturnChecks({ ...exampleArgs, targetObject })).toBe(true)
@@ -58,5 +59,22 @@ describe("earlyReturnChecks", () => {
         regexFilters: invalidRegex,
       })
     ).toBe(true);
+  });
+});
+
+describe("filterByRegex", () => {
+  it("Should return a list of keys that match the supplied regex keys", () => {
+    const formattedRegex = [/fIrSt/iu, /second/u, /č.*ž/u];
+    const targetKeys = [
+      "first",
+      "firST",
+      "second",
+      "theSecond",
+      "thesecond",
+      "third",
+      "ačpž",
+    ];
+    const expected = ["first", "firST", "second", "thesecond", "ačpž"];
+    expect(filterByRegex(targetKeys, formattedRegex)).toEqual(expected);
   });
 });

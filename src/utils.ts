@@ -37,17 +37,11 @@ export const filterByRegex = (
   objKeys: string[],
   regexKeys: RegExp[]
 ): string[] => {
-  let remainingKeys = [...regexKeys];
   let result: string[] = [];
   objKeys.filter(objKey => {
-    for (const [index, regexKey] of remainingKeys.entries()) {
-      const match = regexKey.test(objKey);
-      if (match) {
-        result.push(objKey);
-        remainingKeys.splice(index, 1);
-        break;
-      }
-    }
+    regexKeys.forEach(regexKey => {
+      if (regexKey.test(objKey)) result.push(objKey);
+    });
   });
   return result;
 };
