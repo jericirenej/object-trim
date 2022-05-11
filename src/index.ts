@@ -1,6 +1,6 @@
 "use strict";
 
-import { earlyReturnChecks, filterByRegex, formatFilters } from "./utils";
+import { earlyReturnChecks, filterByRegex, formatFilters } from "./utils.js";
 
 // Type declarations
 export type ValidTypes = "include" | "exclude";
