@@ -15,7 +15,7 @@ export const earlyReturnChecks = (
   if (!targetObject || !Object.keys(targetObject).length) return true;
 
   // Check filters. If an array is provided, check
-  // that the length is truthy, once filtered for allowed values.
+  // that the length is truthy, once invalid values are filtered outs.
   const areFiltersTruthy =
     typeof filters === "string" ||
     (Array.isArray(filters) &&
@@ -33,6 +33,7 @@ export const earlyReturnChecks = (
   return false;
 };
 
+/** Return properly formatted string and regex filters. */
 export const formatFilters = (
   filters: string | string[]|undefined,
   regexFilters: string | RegExp | (string | RegExp)[]|undefined
@@ -43,12 +44,14 @@ export const formatFilters = (
     ? [...filters]
     : [filters];
 
+  // General handler used for each instance of a supplied regexKey
   const singleRegexHandler = (regex: string | RegExp): RegExp | void => {
     if (regex instanceof RegExp) return regex;
     if (typeof regex === "string") return new RegExp(regex);
   };
   let regexKeys: RegExp[] = [];
-  // First handle instance, where regexFilters is a valid array
+  
+  
   if (Array.isArray(regexFilters) && regexFilters.length) {
     regexFilters.forEach(regexFilter => {
       const regex = singleRegexHandler(regexFilter);
