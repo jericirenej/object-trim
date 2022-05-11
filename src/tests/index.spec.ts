@@ -1,8 +1,9 @@
-import objectFilter, { type ValidTypes } from "../index";
+import objectFilter, { ObjectFilterArgs, type ValidTypes } from "../index";
 import * as utils from "../utils";
 
-const spyOnEarlyReturn = jest.spyOn(utils, "earlyReturnChecks");
-const spyOnFilterByRegex = jest.spyOn(utils, "filterByRegex");
+const spyOnEarlyReturn = jest.spyOn(utils, "earlyReturnChecks"),
+  spyOnFilterByRegex = jest.spyOn(utils, "filterByRegex"),
+  spyOnFormatFilters = jest.spyOn(utils, "formatFilters");
 
 const targetObject: Record<string, any> = {};
 const objKeys = ["one", "two", "three", "four"];
@@ -10,7 +11,7 @@ objKeys.forEach(key => (targetObject[key] = key));
 
 describe("objectFilter", () => {
   beforeEach(() => jest.clearAllMocks());
-  describe("Early return checks", () => {
+  describe("Early return checks and formatFilters call", () => {
     it("Should call earlyReturnChecks", () => {
       objectFilter({ targetObject });
       expect(spyOnEarlyReturn).toHaveBeenCalledTimes(1);
@@ -22,7 +23,15 @@ describe("objectFilter", () => {
         filters: "one",
         filterType: "include",
       });
-      expect(filteredObj).toEqual(targetObject);
+      expect(filteredObj).toStrictEqual(targetObject);
+    });
+    it("Should call formatFilters with appropriate arguments", () => {
+      const [filters, regexFilters] = [
+        ["one", "two"],
+        [/one/i, /two/i],
+      ];
+      objectFilter({ targetObject, filters, regexFilters });
+      expect(spyOnFormatFilters).toHaveBeenCalledWith(filters, regexFilters);
     });
   });
   describe("Regular filters", () => {
@@ -36,7 +45,7 @@ describe("objectFilter", () => {
       });
       const keys = Object.keys(filteredObj);
       expect(keys.length).toBe(filters.length);
-      expect(keys).toEqual(filters);
+      expect(keys).toStrictEqual(filters);
     });
     it("Exclude filterType should return object without filter keys", () => {
       const filters = ["one"];
@@ -60,19 +69,6 @@ describe("objectFilter", () => {
       });
       expect(Object.keys(filteredObj).length).toBe(expectedLength);
     });
-    it("Should ignore filters that are not part of the object", () => {
-      const validFilters = ["one"];
-      const filters = [...validFilters, "invalidKey"];
-      const args = { targetObject, filters, filterType: "include" } as const;
-      const filteredInclude = objectFilter(args);
-      const keysInclude = Object.keys(filteredInclude);
-      expect(keysInclude.length).toBe(validFilters.length);
-      expect(keysInclude).toEqual(validFilters);
-
-      const filteredExclude = objectFilter({ ...args, filterType: "exclude" });
-      const keysExclude = Object.keys(filteredExclude);
-      expect(keysExclude.length).toBe(objKeys.length - validFilters.length);
-    });
     it("Should default to 'exclude' type, if filterType is not passed", () => {
       const filteredObj = objectFilter({
         targetObject,
@@ -86,7 +82,7 @@ describe("objectFilter", () => {
         filters: "one",
         filterType: "invalidType" as ValidTypes,
       });
-      expect(filteredObj).toEqual(targetObject);
+      expect(filteredObj).toStrictEqual(targetObject);
     });
   });
   describe("Regex filtering", () => {
@@ -105,7 +101,70 @@ describe("objectFilter", () => {
         /two/,
       ]);
     });
+    it("filterRegex should be passed keys that are left after regular filter check", () => {
+      objectFilter({ targetObject, filters: "one", regexFilters: "two" });
+      expect(spyOnFilterByRegex.mock.calls.flat()[0]).not.toContain("one");
+    });
+    it("Should return properly filtered object", () => {
+      const targetObject = {
+        one: "one",
+        tWo: "tWo",
+        anotherProperty: "anotherProperty",
+      };
+      const exampleArgs: ObjectFilterArgs = {
+        targetObject,
+        regexFilters: [/one/i, /two/i],
+        filterType: "exclude",
+      };
+      const [keysExclude, keysInclude] = [
+        Object.keys(objectFilter(exampleArgs)),
+        Object.keys(objectFilter({ ...exampleArgs, filterType: "include" })),
+      ];
+
+      expect(keysExclude).toStrictEqual(["anotherProperty"]);
+      expect(keysInclude).toStrictEqual(["one", "tWo"]);
+    });
   });
+  describe("Both filter groups should play nice with each other", () => {
+    const targetObject = {
+      one: "one",
+      tWo: "tWo",
+      anotherProperty: "anotherProperty",
+    };
+    const [filters, regexFilters] = ["one", /two/i];
+    const exampleArgs: ObjectFilterArgs = {
+      targetObject,
+      filters,
+      regexFilters,
+    };
+    const [expectedExclude, expectedInclude] = [
+      ["anotherProperty"],
+      ["one", "tWo"],
+    ];
+    beforeEach(() => jest.clearAllMocks());
+    it("When both filter groups are supplied, both should be applied", () => {
+      const [keysExclude, keysInclude] = [
+        Object.keys(objectFilter({ ...exampleArgs, filterType: "exclude" })),
+        Object.keys(objectFilter({ ...exampleArgs, filterType: "include" })),
+      ];
+      expect(keysExclude).toStrictEqual(expectedExclude);
+      expect(keysInclude).toStrictEqual(expectedInclude);
+    });
+    const [keysExclude, keysInclude] = [
+      Object.keys(
+        objectFilter({
+          targetObject,
+          filters: [filters, "invalidFilter"],
+          regexFilters: [regexFilters, /invalidRegex/],
+          filterType: "exclude",
+        })
+      ),
+      Object.keys(objectFilter({ ...exampleArgs, filterType: "include" })),
+    ];
+    expect(keysExclude).toStrictEqual(expectedExclude);
+    expect(keysInclude).toStrictEqual(expectedInclude);
+  });
+  it("Filters that do not match any keys should not influence result", () => {});
 });
 describe("Test recursive filtering", () => {
   const targetProp = "targetProp";
@@ -128,10 +187,10 @@ describe("Test recursive filtering", () => {
       const filteredObj = objectFilter({ ...baseArgs, filterType });
       const expected =
         filterType === "exclude" ? expectedExclude : expectedInclude;
-      expect(filteredObj).toEqual(expected);
+      expect(filteredObj).toStrictEqual(expected);
     });
   });
-  it("Should not filter arrays, maps, and sets", () => {
+  it("Should not filter within arrays, maps, and sets", () => {
     const arr = [1, 2, targetProp],
       set = new Set([1, 2, targetProp]),
       map = new Map([[targetProp, targetProp]]);
