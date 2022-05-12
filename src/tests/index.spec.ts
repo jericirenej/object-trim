@@ -166,27 +166,60 @@ describe("objectFilter", () => {
   });
   it("Filters that do not match any keys should not influence result", () => {});
 });
+
+
 describe("Test recursive filtering", () => {
   const targetProp = "targetProp";
   const otherProp = "otherProp";
+  const thirdProp = "thirdProp";
   const targetObject = {
     targetProp,
-    nesting: { otherProp, targetProp, nesting: { otherProp, targetProp } },
+    nesting: {
+      otherProp,
+      targetProp,
+      nesting: {
+        otherProp,
+        targetProp: {
+          otherProp,
+        },
+        thirdProp,
+      },
+    },
   };
+
   const expectedExclude = {
     nesting: { otherProp, nesting: { otherProp } },
   };
-  const expectedInclude = { targetProp };
-  const baseArgs = {
-    targetObject,
-    filters: targetProp,
-    recursive: true,
-  } as const;
+  const expectedInclude = {
+    targetProp,
+    nesting: { targetProp, nesting: { targetProp: { otherProp } } },
+  };
+  const [excludeArgs, includeArgs] = [
+    ["thirdProp", "targetProp"],
+    ["targetProp", "nesting"],
+  ];
+
   it("Should recursively remove targeted props", () => {
-    (["exclude", "include"] as const).forEach(filterType => {
-      const filteredObj = objectFilter({ ...baseArgs, filterType });
-      const expected =
-        filterType === "exclude" ? expectedExclude : expectedInclude;
+    [
+      {
+        filterType: "exclude" as const,
+        filters: excludeArgs,
+        expected: expectedExclude,
+      },
+      {
+        filterType: "include" as const,
+        filters: includeArgs,
+        expected: expectedInclude,
+      },
+    ].forEach(config => {
+      const { filterType, filters, expected } = config;
+      const filteredObj = objectFilter({
+        targetObject,
+        filterType,
+        filters,
+        recursive: true,
+      });
+
       expect(filteredObj).toStrictEqual(expected);
     });
   });
@@ -202,7 +235,8 @@ describe("Test recursive filtering", () => {
       secondNesting: { arr, set, map, targetProp, otherProp },
     };
     const filteredObj = objectFilter({
-      ...baseArgs,
+      recursive: true,
+      filters: targetProp,
       targetObject: expandedTarget,
       filterType: "exclude",
     }) as Partial<typeof expandedTarget>;
