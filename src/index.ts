@@ -3,7 +3,7 @@
 import { earlyReturnChecks, filterByRegex, formatFilters } from "./utils.js";
 
 // Type declarations
-export type ValidTypes = "include" | "exclude";
+export type ValidTypes = "exclude" | "include";
 export interface ObjectFilterArgs {
   targetObject: Record<string, any>;
   filters?: string | string[];
@@ -23,7 +23,7 @@ const objectFilter = (config: {
   targetObject: Record<string, any>;
   filters?: string | string[];
   regexFilters?: string | RegExp | (RegExp | string)[];
-  filterType?: "include" | "exclude";
+  filterType?: "exclude" | "include";
   recursive?: boolean;
 }): Record<string, any> => {
   if (earlyReturnChecks(config)) return config.targetObject;
