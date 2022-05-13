@@ -1,18 +1,17 @@
 "use strict";
 
+import { earlyReturnChecks, EXCLUDED_TYPES, filterByRegex, formatFilters } from "./utils.js";
+
 // Type declarations
-export type ValidTypes = "include" | "exclude";
-interface ObjectFilterArgs {
+export type ValidTypes = "exclude" | "include";
+export interface ObjectFilterArgs {
   targetObject: Record<string, any>;
-  filters: string | string[];
+  filters?: string | string[];
+  regexFilters?: string | RegExp | (RegExp | string)[];
   filterType?: ValidTypes;
   recursive?: boolean;
 }
 
-const VALID_FILTER_TYPES: ValidTypes[] = Array.from(
-  new Set(["exclude", "include"])
-);
-const EXCLUDED_TYPES = [Array, Map, Set] as const;
 
 /** Filter an object based on matching its key against the provided filters.
  *  Supply a configuration object with *targetObject*, *filterType*, and *filters* properties.
@@ -22,10 +21,12 @@ const EXCLUDED_TYPES = [Array, Map, Set] as const;
  */
 const objectFilter = (config: {
   targetObject: Record<string, any>;
-  filters: string | string[];
-  filterType?: "include" | "exclude";
+  filters?: string | string[];
+  regexFilters?: string | RegExp | (RegExp | string)[];
+  filterType?: "exclude" | "include";
   recursive?: boolean;
 }): Record<string, any> => {
+  if (earlyReturnChecks(config)) return config.targetObject;
   if (config.recursive) {
     return executeRecursiveFilter(config);
   }
@@ -36,22 +37,27 @@ const executeObjectFilter = (
   config: Omit<ObjectFilterArgs, "recursive">
 ): Record<string, any> => {
   const filteredObject: Record<string, any> = {};
-  const { filters, targetObject, filterType } = config;
-  if (filterType !== undefined && !VALID_FILTER_TYPES.includes(filterType))
-    return targetObject;
-
+  const { filters, targetObject, filterType, regexFilters } = config;
   const objKeys = Object.keys(targetObject);
-  if (!objKeys.length) return targetObject;
 
-  const filterKeys = Array.isArray(filters) ? [...filters] : [filters];
+  const { filterKeys, regexKeys } = formatFilters(filters, regexFilters);
+
   const checkedFilterKeys = filterKeys.filter((key: string) =>
     objKeys.includes(key)
   );
 
-  if (!(filterKeys.length && checkedFilterKeys.length)) return targetObject;
+  const checkedRegexKeys = regexKeys.length
+    ? filterByRegex(
+        objKeys.filter(key => !checkedFilterKeys.includes(key)),
+        regexKeys
+      )
+    : [];
+  if (!(checkedFilterKeys.length || checkedRegexKeys.length))
+    return targetObject;
 
   const targetKeys = objKeys.filter(key => {
-    const isAmongCheckedKeys = checkedFilterKeys.includes(key);
+    const isAmongCheckedKeys =
+      checkedFilterKeys.includes(key) || checkedRegexKeys.includes(key);
     return filterType === "include" ? isAmongCheckedKeys : !isAmongCheckedKeys;
   });
 

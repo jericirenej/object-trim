@@ -1,6 +1,6 @@
 {
   "name": "@jericirenej/object-filter",
-  "description": "Return an object with trimmed properties based on supplied list of keys and a filter type (include | exclude).",
+  "description": "Return an object with filtered properties based on supplied list of filter keys (strings or regex) and a filter type (include | exclude).",
   "author": "Irenej Jeric",
   "version": "1.0.6",
   "license": "ISC",
@@ -9,8 +9,8 @@
   "type": "module",
   "files": [
     "dist/index.js",
-    "dist/index.d.ts",
-    "dist/types.d.ts",
+    "dist/utils.js",
+    "dist/*.d.ts",
     "README.md"
   ],
   "scripts": {
