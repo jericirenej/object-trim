@@ -1,6 +1,25 @@
 import type { ObjectFilterArgs, ValidTypes } from "./index.js";
 
 const VALID_FILTER_TYPES: ValidTypes[] = ["exclude", "include"];
+export const EXCLUDED_TYPES = [
+  Array,
+  Map,
+  Set,
+  Date,
+  WeakMap,
+  WeakSet,
+  Int16Array,
+  Int32Array,
+  Int8Array,
+  BigInt64Array,
+  BigUint64Array,
+  Uint16Array,
+  Uint32Array,
+  Uint8Array,
+  Uint8ClampedArray,
+  ArrayBuffer,
+  SharedArrayBuffer,
+] as const;
 
 /** Sanity check parameters so that function works as expected in non-TS environments.
  * If it returns true, function will perform an early return of the targetObject.

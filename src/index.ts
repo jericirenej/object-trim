@@ -1,6 +1,6 @@
 "use strict";
 
-import { earlyReturnChecks, filterByRegex, formatFilters } from "./utils.js";
+import { earlyReturnChecks, EXCLUDED_TYPES, filterByRegex, formatFilters } from "./utils.js";
 
 // Type declarations
 export type ValidTypes = "exclude" | "include";
@@ -11,7 +11,7 @@ export interface ObjectFilterArgs {
   filterType?: ValidTypes;
   recursive?: boolean;
 }
-const EXCLUDED_TYPES = [Array, Map, Set] as const;
+
 
 /** Filter an object based on matching its key against the provided filters.
  *  Supply a configuration object with *targetObject*, *filterType*, and *filters* properties.
