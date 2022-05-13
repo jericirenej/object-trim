@@ -1,5 +1,6 @@
 import objectFilter, { ObjectFilterArgs, type ValidTypes } from "../index";
 import * as utils from "../utils";
+import mockTestObjects from "./mockTestObjects";
 
 const spyOnEarlyReturn = jest.spyOn(utils, "earlyReturnChecks"),
   spyOnFilterByRegex = jest.spyOn(utils, "filterByRegex"),
@@ -167,7 +168,6 @@ describe("objectFilter", () => {
   it("Filters that do not match any keys should not influence result", () => {});
 });
 
-
 describe("Test recursive filtering", () => {
   const targetProp = "targetProp";
   const otherProp = "otherProp";
@@ -251,6 +251,30 @@ describe("Test recursive filtering", () => {
         expect(filteredObj[key]!.has(targetProp)).toBe(true);
         expect(filteredObj.secondNesting![key]!.has(targetProp)).toBe(true);
       }
+    });
+  });
+});
+
+describe("Variation mock testing", () => {
+  // Mock objects will need adjustments after "include" filterType upgrade.
+  it("Should return expected objects", () => {
+    mockTestObjects.forEach((mockObject, index) => {
+      const {
+        expected,
+        targetObject,
+        filterType,
+        filters,
+        recursive,
+        regexFilters,
+      } = mockObject;
+      const filtered = objectFilter({
+        targetObject,
+        filterType,
+        filters,
+        recursive,
+        regexFilters,
+      });
+      expect(filtered).toStrictEqual(expected);
     });
   });
 });
