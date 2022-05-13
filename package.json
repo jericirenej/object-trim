@@ -1,8 +1,8 @@
 {
   "name": "@jericirenej/object-filter",
-  "description": "Return an object with filtered properties based on supplied list of filter keys (strings or regex) and a filter type (include | exclude).",
+  "description": "Return an object with filtered properties based on a supplied list of filter keys. Exclude/include filtering options and recursive operation available.",
   "author": "Irenej Jeric",
-  "version": "1.0.6",
+  "version": "1.2.0",
   "license": "ISC",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
