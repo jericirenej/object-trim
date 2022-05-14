@@ -54,8 +54,8 @@ export const earlyReturnChecks = (
 
 /** Return properly formatted string and regex filters. */
 export const formatFilters = (
-  filters: string | string[]|undefined,
-  regexFilters: string | RegExp | (string | RegExp)[]|undefined
+  filters: string | string[] | undefined,
+  regexFilters: string | RegExp | (string | RegExp)[] | undefined
 ): { filterKeys: string[]; regexKeys: RegExp[] } => {
   const filterKeys = !filters
     ? []
@@ -69,8 +69,7 @@ export const formatFilters = (
     if (typeof regex === "string") return new RegExp(regex);
   };
   let regexKeys: RegExp[] = [];
-  
-  
+
   if (Array.isArray(regexFilters) && regexFilters.length) {
     regexFilters.forEach(regexFilter => {
       const regex = singleRegexHandler(regexFilter);
@@ -94,4 +93,29 @@ export const filterByRegex = (
     });
   });
   return result;
+};
+
+interface ExtractRecursiveArgs {
+  targetKey: string | RegExp;
+  sourceObject: Record<string, any>;
+  filteredObject: Record<string, any>;
+  arrBuffer: string[];
+}
+
+type ExtractProperty = (
+  args: Omit<ExtractRecursiveArgs, "arrBuffer">
+) => Record<string, any>;
+
+export const extractProperty: ExtractProperty = ({
+  targetKey,
+  sourceObject,
+  filteredObject,
+}) => {
+  let nestingStarted = false;
+  const extractFunction = (
+    args: ExtractRecursiveArgs
+  ): Record<string, any> => {};
+  const filteredResult = (filteredObject && Object.keys(filteredObject).length) ? filteredObject : {};
+  extractFunction({targetKey,filteredObject: filteredResult, sourceObject, arrBuffer:[] });
+  return filteredResult;
 };
