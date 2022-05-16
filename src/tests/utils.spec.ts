@@ -1,5 +1,5 @@
 import type { ObjectFilterArgs, ValidTypes } from "../index";
-import { earlyReturnChecks, filterByRegex } from "../utils";
+import { earlyReturnChecks, filterByRegex, formatFilters } from "../utils";
 
 const targetObject = { first: "first", second: "second" };
 const filters = ["first"];
@@ -59,6 +59,42 @@ describe("earlyReturnChecks", () => {
         regexFilters: invalidRegex,
       })
     ).toBe(true);
+  });
+});
+
+describe.only("formatFilters", () => {
+  it("Should return a properly formed response", () => {
+    const variants = [
+      {
+        filters: "one",
+        regexFilters: undefined,
+        expected: { filterKeys: ["one"], regexKeys: [] },
+      },
+      {
+        filters: undefined,
+        regexFilters: "two",
+        expected: { filterKeys: [], regexKeys: [/two/] },
+      },
+      {
+        filters: ["one", "two"],
+        regexFilters: ["three", /four/gi],
+        expected: {
+          filterKeys: ["one", "two"],
+          regexKeys: [/three/, /four/gi],
+        },
+      },
+    ];
+    variants.forEach(variant => {
+      const { expected, filters, regexFilters } = variant;
+      expect(formatFilters(filters, regexFilters)).toStrictEqual(expected);
+    });
+  });
+  it("Should exclude those filterKeys that are already matched by regexKey", () => {
+    const config = {
+      filters: ["first", "second", "third"],
+      regexFilters: [/ir/],
+      expected: { filterKeys: ["second"], regexKeys: [/ir/] },
+    };
   });
 });
 

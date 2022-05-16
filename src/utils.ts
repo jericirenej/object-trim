@@ -57,7 +57,7 @@ export const formatFilters = (
   filters: string | string[] | undefined,
   regexFilters: string | RegExp | (string | RegExp)[] | undefined
 ): { filterKeys: string[]; regexKeys: RegExp[] } => {
-  const filterKeys = !filters
+  let filterKeys = !filters
     ? []
     : Array.isArray(filters)
     ? [...filters]
@@ -78,6 +78,9 @@ export const formatFilters = (
   }
   // If regexFilters is not an array
   const regex = singleRegexHandler(regexFilters as string | RegExp);
+
+  // Remove those filterKeys that already match any of the regexKeys;
+  filterKeys = filterKeys.filter(filterKey => !regexKeys.some(regexKey => regexKey.test(filterKey)));
   if (regex) regexKeys.push(regex);
   return { filterKeys, regexKeys };
 };
@@ -95,27 +98,41 @@ export const filterByRegex = (
   return result;
 };
 
-interface ExtractRecursiveArgs {
-  targetKey: string | RegExp;
+/* interface ExtractRecursiveArgs {
+  filterKeys: string[];
+  regexKeys: RegExp[];
   sourceObject: Record<string, any>;
   filteredObject: Record<string, any>;
   arrBuffer: string[];
 }
 
 type ExtractProperty = (
-  args: Omit<ExtractRecursiveArgs, "arrBuffer">
+  args: Omit<ExtractRecursiveArgs, ["arrBuffer", "filteredObject"]>
 ) => Record<string, any>;
 
-export const extractProperty: ExtractProperty = ({
-  targetKey,
-  sourceObject,
-  filteredObject,
-}) => {
-  let nestingStarted = false;
-  const extractFunction = (
-    args: ExtractRecursiveArgs
-  ): Record<string, any> => {};
-  const filteredResult = (filteredObject && Object.keys(filteredObject).length) ? filteredObject : {};
-  extractFunction({targetKey,filteredObject: filteredResult, sourceObject, arrBuffer:[] });
-  return filteredResult;
+const extractFunction = (
+  {sourceObject, filterKeys, regexKeys, arrBuffer, filteredObject}: ExtractRecursiveArgs
+): Record<string, any> => {
+  const sourceObjKeys = Object.keys(sourceObject);
+  
 };
+
+export const extractProperty: ExtractProperty = ({
+  filterKeys,
+  regexKeys,
+  sourceObject,
+}) => {
+  let recursionStarted = false;
+
+  let filteredObject = {};
+  extractFunction({
+    filterKeys,
+    regexKeys,
+    filteredObject,
+    sourceObject,
+    arrBuffer: [],
+  });
+
+  return filteredObject;
+};
+ */
