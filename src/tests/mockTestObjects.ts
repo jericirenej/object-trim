@@ -122,7 +122,7 @@ const nestedFavoritesExample = {
     ...nestedFavoritesMock3,
     filters: "favorites",
     filterType: "include",
-    expected: { firstName, surname, favorites: { food } },
+    expected: { firstName, surname, favorites: { food, person: {firstName, surname} } },
     tag: "nestedFavoritesMock4",
   };
 
