@@ -1,6 +1,11 @@
 "use strict";
 
-import { earlyReturnChecks, EXCLUDED_TYPES, filterByRegex, formatFilters } from "./utils.js";
+import {
+  earlyReturnChecks,
+  EXCLUDED_TYPES,
+  filterByRegex,
+  formatFilters
+} from "./utils.js";
 
 // Type declarations
 export type ValidTypes = "exclude" | "include";
@@ -12,25 +17,25 @@ export interface ObjectFilterArgs {
   recursive?: boolean;
 }
 
-
 /** Filter an object based on matching its key against the provided filters.
  *  Supply a configuration object with *targetObject*, *filterType*, and *filters* properties.
  * Two types of filtering available:
  *  * *include*: includes only the properties that match the filter keys.
  *  * *exclude*: excludes the properties that match filter keys.
  */
-const objectFilter = (config: {
-  targetObject: Record<string, any>;
-  filters?: string | string[];
-  regexFilters?: string | RegExp | (RegExp | string)[];
-  filterType?: "exclude" | "include";
-  recursive?: boolean;
-}): Record<string, any> => {
-  if (earlyReturnChecks(config)) return config.targetObject;
-  if (config.recursive) {
-    return executeRecursiveFilter(config);
+const objectFilter = ({
+  targetObject,
+  filters,
+  regexFilters,
+  filterType,
+  recursive = true,
+}: ObjectFilterArgs): Record<string, any> => {
+  const args = { targetObject, filters, regexFilters, filterType };
+  if (earlyReturnChecks(args)) return targetObject;
+  if (recursive) {
+    return executeRecursiveFilter(args);
   }
-  return executeObjectFilter(config);
+  return executeObjectFilter(args);
 };
 
 const executeObjectFilter = (
@@ -45,7 +50,9 @@ const executeObjectFilter = (
   const checkedFilterKeys = filterKeys.filter((key: string) =>
     objKeys.includes(key)
   );
-
+  // !No longer need to filter out those object keys, covered by filterKeys!
+  // !Quite the opposite: regexFiltering should precede normal filters!
+  // TODO: However, this implementation will be replaced with the ExtractProperty function!
   const checkedRegexKeys = regexKeys.length
     ? filterByRegex(
         objKeys.filter(key => !checkedFilterKeys.includes(key)),
