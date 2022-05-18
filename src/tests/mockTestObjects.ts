@@ -122,10 +122,13 @@ const nestedFavoritesExample = {
     ...nestedFavoritesMock3,
     filters: "favorites",
     filterType: "include",
-    expected: { firstName, surname, favorites: { food, person: {firstName, surname} } },
+    expected: {
+      firstName,
+      surname,
+      favorites: { food, person: { firstName, surname } },
+    },
     tag: "nestedFavoritesMock4",
   };
-
 
 const mapAddress = new Map([
   ["address", "address"],
