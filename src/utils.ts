@@ -22,10 +22,7 @@ type SingleLevelIncludeFilter = (
 ) => string[];
 
 type UpdateFilteredObject = (
-  args: Omit<
-    ExtractRecursiveArgs,
-    "filterKeys" | "regexKeys" | "filterType"
-  > & {
+  args: Omit<ExtractRecursiveArgs, "filterKeys" | "regexKeys"> & {
     matchedKeys: string[];
     sourceObjKeys: string[];
   }
@@ -138,6 +135,13 @@ export const filterByRegex = (
   return result;
 };
 
+const orderMatchedKeys = (
+  matchedKeys: string[],
+  sourceObjKeys: string[]
+): string[] => {
+  return sourceObjKeys.filter(key => matchedKeys.includes(key));
+};
+
 const singleLevelFilter: SingleLevelIncludeFilter = ({
   filterKeys,
   regexKeys,
@@ -163,15 +167,35 @@ const singleLevelFilter: SingleLevelIncludeFilter = ({
   return matchedKeys;
 };
 
+/**Determine whether a matched sourceObject property value can be assigned to
+ * the filteredObject. Primitive values and excluded object types can be assigned,
+ * as they are not filtered themselves.
+ */
+const isValidValue = (val: any): boolean => {
+  const primitives = ["string", "number", "boolean", "bigint", "symbol"];
+  if (val === null || val === undefined) return true;
+  if (primitives.some(primitiveType => typeof val === primitiveType))
+    return true;
+  if (EXCLUDED_TYPES.some(objType => val instanceof objType)) return true;
+  return false;
+};
+
 const updateFilterObject: UpdateFilteredObject = ({
   matchedKeys,
   pathArray,
   filteredObject,
   sourceObject,
+  filterType,
 }) => {
   if (!pathArray.length) {
     matchedKeys.forEach(key => {
-      return (filteredObject[key] = sourceObject[key]);
+      const targetVal = sourceObject[key];
+      if (filterType === "include") {
+        return (filteredObject[key] = targetVal);
+      }
+      return isValidValue(targetVal)
+        ? (filteredObject[key] = targetVal)
+        : (filteredObject[key] = {});
     });
     return;
   }
@@ -179,9 +203,15 @@ const updateFilterObject: UpdateFilteredObject = ({
     pathArray.reduce((composedObj, current, index) => {
       if (index === pathArray.length - 1) {
         composedObj[current] = {};
-        matchedKeys.forEach(
-          key => (composedObj[current][key] = sourceObject[key])
-        );
+        matchedKeys.forEach(key => {
+          const targetVal = sourceObject[key];
+          if (filterType === "include") {
+            return (composedObj[current][key] = targetVal);
+          }
+          return isValidValue(targetVal)
+            ? (composedObj[current][key] = targetVal)
+            : (composedObj[current][key] = {});
+        });
       }
       return composedObj[current]
         ? composedObj[current]
@@ -189,7 +219,6 @@ const updateFilterObject: UpdateFilteredObject = ({
     }, filteredObject);
   }
 };
-
 
 const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
   filterType,
@@ -238,8 +267,9 @@ export const recursiveFilter: ExtractProperty = ({
       sourceObject,
       filteredObject,
       pathArray,
-      matchedKeys: matchedToPass,
+      matchedKeys: orderMatchedKeys(matchedToPass, sourceObjKeys),
       sourceObjKeys,
+      filterType,
     };
 
     updateFilterObject(updateArgs);
