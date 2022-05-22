@@ -1,23 +1,12 @@
-import type { ObjectFilterArgs, ValidTypes } from "./index.js";
-interface ExtractRecursiveArgs {
-  filterKeys: string[];
-  regexKeys: RegExp[];
-  sourceObject: Record<string, any>;
-  filteredObject: Record<string, any>;
-  pathArray: string[];
-  filterType: ValidTypes;
-  recursive?: boolean;
-}
-
-type ExtractPropertyArgs = Omit<
+import type {
   ExtractRecursiveArgs,
-  "filteredObject" | "pathArray"
->;
+  ObjectFilterArgs,
+  ValidTypes
+} from "./index.js";
 
-type ExtractProperty = (args: ExtractPropertyArgs) => Record<string, any>;
 
 type SingleLevelIncludeFilter = (
-  args: Omit<ExtractPropertyArgs, "sourceObject" | "filterType"> & {
+  args: Omit<ExtractRecursiveArgs, "sourceObject" | "filterType"|"filteredObject" | "pathArray"> & {
     sourceObjKeys: string[];
   }
 ) => string[];
@@ -136,14 +125,14 @@ export const filterByRegex = (
   return result;
 };
 
-const orderMatchedKeys = (
+export const orderMatchedKeys = (
   matchedKeys: string[],
   sourceObjKeys: string[]
 ): string[] => {
   return sourceObjKeys.filter(key => matchedKeys.includes(key));
 };
 
-const singleLevelFilter: SingleLevelIncludeFilter = ({
+export const singleLevelFilter: SingleLevelIncludeFilter = ({
   filterKeys,
   regexKeys,
   sourceObjKeys,
@@ -198,7 +187,7 @@ export const determineTargetValue = <T>(
   return {};
 };
 
-const updateFilterObject: UpdateFilteredObject = ({
+export const updateFilterObject: UpdateFilteredObject = ({
   matchedKeys,
   pathArray,
   filteredObject,
@@ -234,7 +223,7 @@ const updateFilterObject: UpdateFilteredObject = ({
   }
 };
 
-const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
+export const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
   filterType,
   matchedKeys,
   sourceObjKeys,
@@ -251,80 +240,5 @@ const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
     }
     const isMatched = matchedKeys.includes(key);
     return isObj && isValidType && !isMatched;
-  });
-};
-
-export const recursiveFilter: ExtractProperty = ({
-  filterKeys,
-  regexKeys,
-  sourceObject,
-  filterType,
-  recursive = true,
-}) => {
-  const extractFunction = ({
-    sourceObject,
-    filterKeys,
-    regexKeys,
-    pathArray,
-    filteredObject,
-    recursive = true,
-  }: ExtractRecursiveArgs): Record<string, any> => {
-    const sourceObjKeys = Object.keys(sourceObject);
-    const matchedKeys = singleLevelFilter({
-      filterKeys,
-      regexKeys,
-      sourceObjKeys,
-    });
-    const matchedToPass =
-      filterType === "include"
-        ? matchedKeys
-        : sourceObjKeys.filter(key => !matchedKeys.includes(key));
-    const updateArgs = {
-      sourceObject,
-      filteredObject,
-      pathArray,
-      matchedKeys: orderMatchedKeys(matchedToPass, sourceObjKeys),
-      sourceObjKeys,
-      filterType,
-      recursive,
-    };
-
-    updateFilterObject(updateArgs);
-
-    // Exit after first iteration, if recursive is set to false...
-    if (!recursive) {
-      return filteredObject;
-    }
-
-    //...Otherwise, continue with recursive execution.
-    const successorObjKeys = determineSuccessorObjKeys({
-      filterType,
-      matchedKeys,
-      sourceObjKeys,
-      sourceObject,
-    });
-    successorObjKeys.forEach(key => {
-      const newSource = sourceObject[key];
-      const newPathArray = [...pathArray, key];
-      extractFunction({
-        sourceObject: newSource,
-        filterKeys,
-        regexKeys,
-        filteredObject,
-        pathArray: newPathArray,
-        filterType,
-        recursive,
-      });
-    });
-    return filteredObject;
-  };
-  return extractFunction({
-    filterKeys,
-    regexKeys,
-    filteredObject: {},
-    sourceObject,
-    pathArray: [],
-    filterType,
-    recursive,
   });
 };
