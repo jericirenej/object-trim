@@ -29,8 +29,8 @@ For a detailed description package use and important notes, be sure to **visit t
 const objectFilter = ({
   targetObject: Record<string,any>;
   filters?: string|string[];
-  regexFilters?: string|RegExp|(string|RegExp)[]  // "At least one of the filter groups needs to be valid."
-  filterType?: "exclude"|"include";               // "Will default to exclude if not provided."
-  recursive?: boolean;
+  regexFilters?: string|RegExp|(string|RegExp)[]  // At least one filter group must be valid.
+  filterType?: "exclude"|"include";               // Will default to exclude.
+  recursive?: boolean;                            // Will default to true.
   }) => Record<string,any>
 ```
