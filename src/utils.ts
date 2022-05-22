@@ -103,12 +103,12 @@ export const formatFilters = (
   }
   // If regexFilters is not an array
   const regex = singleRegexHandler(regexFilters as string | RegExp);
+  if (regex) regexKeys.push(regex);
 
   // Remove those filterKeys that already match any of the regexKeys;
   filterKeys = filterKeys.filter(
     filterKey => !regexKeys.some(regexKey => regexKey.test(filterKey))
   );
-  if (regex) regexKeys.push(regex);
   return { filterKeys, regexKeys };
 };
 
