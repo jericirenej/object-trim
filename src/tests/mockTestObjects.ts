@@ -113,8 +113,8 @@ const nestedFavoritesExample = {
     targetObject: nestedFavoritesExample,
     recursive: true,
     filterType: "exclude",
-    filters: ["firstName", "surname", "sport"],
-    expected: { favorites: { food, book, person: {} } },
+    filters: ["firstName", "sport"],
+    expected: { surname, favorites: { food, book, person: { surname } } },
     tag: "nestedFavoritesMock2",
   },
   nestedFavoritesMock3: TestObject = {

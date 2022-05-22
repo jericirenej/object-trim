@@ -1,29 +1,25 @@
-import type {
-  ExtractRecursiveArgs,
-  ObjectFilterArgs,
-  ValidTypes,
-} from "./index.js";
+import type { ObjectFilterArgs, ValidTypes } from "./index.js";
 
-type SingleLevelIncludeFilter = (
-  args: Omit<
-    ExtractRecursiveArgs,
-    "sourceObject" | "filterType" | "filteredObject" | "pathArray"
-  > & {
-    sourceObjKeys: string[];
-  }
-) => string[];
+type SingleLevelIncludeFilter = (args: {
+  filterKeys: string[];
+  regexKeys: RegExp[];
+  sourceObjKeys: string[];
+}) => string[];
 
-type UpdateFilteredObject = (
-  args: Omit<ExtractRecursiveArgs, "filterKeys" | "regexKeys"> & {
-    matchedKeys: string[];
-    sourceObjKeys: string[];
-  }
-) => void;
+type UpdateFilteredObject = (args: {
+  matchedKeys: string[];
+  sourceObjKeys: string[];
+  pathArray: string[];
+  filteredObject: Record<string, any>;
+  sourceObject: Record<string, any>;
+  filterType: ValidTypes;
+  recursive: boolean;
+}) => void;
 
 type DetermineSuccessorObjKeys = (args: {
+  matchedKeys: string[];
   sourceObjKeys: string[];
   sourceObject: Record<string, any>;
-  matchedKeys: string[];
   filterType: ValidTypes;
 }) => string[];
 
@@ -102,10 +98,10 @@ export const formatFilters = (
       const regex = singleRegexHandler(regexFilter);
       if (regex) regexKeys.push(regex);
     });
+  } else {
+    const regex = singleRegexHandler(regexFilters as string | RegExp);
+    if (regex) regexKeys.push(regex);
   }
-  // If regexFilters is not an array
-  const regex = singleRegexHandler(regexFilters as string | RegExp);
-  if (regex) regexKeys.push(regex);
 
   // Remove those filterKeys that already match any of the regexKeys;
   filterKeys = filterKeys.filter(
@@ -161,7 +157,7 @@ export const singleLevelFilter: SingleLevelIncludeFilter = ({
 
 /**Determine whether a matched sourceObject property value can be assigned to
  * the filteredObject. Primitive values and excluded object types can be assigned,
- * as they are not filtered themselves.
+ * as they are not filtered.
  */
 export const isValidValue = (val: any): boolean => {
   const primitives = ["string", "number", "boolean", "bigint", "symbol"];
@@ -181,7 +177,6 @@ export const determineTargetValue = <T>(
   filterType: ValidTypes,
   recursive = true
 ): T | {} => {
-  // Inclusive and non-recursive exclusive filtering is greedy.
   if (filterType === "include" || !recursive) return targetValue;
   // Exclusive filtering only returns primitives and non-filterable object types
   const isTargetValid = isValidValue(targetValue);
@@ -211,7 +206,7 @@ export const updateFilterObject: UpdateFilteredObject = ({
   if (matchedKeys.length) {
     pathArray.reduce((composedObj, current, index) => {
       if (index === pathArray.length - 1) {
-        // Initial empty object set to prevent access errors.
+        // Initial empty object set to prevent access errors and clear previous values.
         composedObj[current] = {};
         matchedKeys.forEach(key => {
           const targetVal = determineTargetValue(sourceObject[key], filterType);

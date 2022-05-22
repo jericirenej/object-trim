@@ -18,7 +18,7 @@ export interface ObjectFilterArgs {
   filterType?: ValidTypes;
   recursive?: boolean;
 }
-export interface ExtractRecursiveArgs {
+interface ExtractRecursiveArgs {
   filterKeys: string[];
   regexKeys: RegExp[];
   sourceObject: Record<string, any>;
