@@ -1,12 +1,14 @@
 import type {
   ExtractRecursiveArgs,
   ObjectFilterArgs,
-  ValidTypes
+  ValidTypes,
 } from "./index.js";
 
-
 type SingleLevelIncludeFilter = (
-  args: Omit<ExtractRecursiveArgs, "sourceObject" | "filterType"|"filteredObject" | "pathArray"> & {
+  args: Omit<
+    ExtractRecursiveArgs,
+    "sourceObject" | "filterType" | "filteredObject" | "pathArray"
+  > & {
     sourceObjKeys: string[];
   }
 ) => string[];
@@ -231,6 +233,7 @@ export const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
 }) => {
   return [...sourceObjKeys].filter(key => {
     const sourceObjValue = sourceObject[key];
+    const isDefined = sourceObjValue !== null;
     const isObj = typeof sourceObjValue === "object";
     const isValidType = EXCLUDED_TYPES.every(
       instanceType => !(sourceObjValue instanceof instanceType)
@@ -239,6 +242,6 @@ export const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
       return isObj && isValidType;
     }
     const isMatched = matchedKeys.includes(key);
-    return isObj && isValidType && !isMatched;
+    return isDefined && isObj && isValidType && !isMatched;
   });
 };
