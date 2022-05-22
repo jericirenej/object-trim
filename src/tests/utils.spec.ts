@@ -1,5 +1,12 @@
 import type { ObjectFilterArgs, ValidTypes } from "../index";
-import { earlyReturnChecks, filterByRegex, formatFilters } from "../utils";
+import * as utils from "../utils";
+const {
+  earlyReturnChecks,
+  filterByRegex,
+  formatFilters,
+  isValidValue,
+  determineTargetValue,
+} = utils;
 
 const targetObject = { first: "first", second: "second" };
 const filters = ["first"];
@@ -62,7 +69,7 @@ describe("earlyReturnChecks", () => {
   });
 });
 
-describe.only("formatFilters", () => {
+describe("formatFilters", () => {
   it("Should return a properly formed response", () => {
     const variants = [
       {
@@ -81,6 +88,15 @@ describe.only("formatFilters", () => {
         expected: {
           filterKeys: ["one", "two"],
           regexKeys: [/three/, /four/gi],
+        },
+      },
+      {
+        // Only filterKeys that are not already matched by regexKeys are returned.
+        filters: ["meal", "deal", "steal"],
+        regexFilters: [/^.ea.$/],
+        expected: {
+          filterKeys: ["steal"],
+          regexKeys: [/^.ea.$/],
         },
       },
     ];
@@ -112,5 +128,51 @@ describe("filterByRegex", () => {
     ];
     const expected = ["first", "firST", "second", "thesecond", "ačpž"];
     expect(filterByRegex(targetKeys, formattedRegex)).toEqual(expected);
+  });
+});
+
+describe("isValidValue", () => {
+  const primitives = [
+    null,
+    undefined,
+    "string",
+    25,
+    true,
+    BigInt(150),
+    Symbol("symbol"),
+  ];
+  const arr = [1, "2", true];
+  const excludedTypes = [arr, new Date(2022)];
+  it("Should return true for primitives and excluded types", () => {
+    [...primitives, ...excludedTypes].forEach(val =>
+      expect(isValidValue(val)).toBe(true)
+    );
+  });
+  it("Should return false for objects", () => {
+    expect(isValidValue({ prop1: "prop1", prop2: "prop2" })).toBe(false);
+  });
+});
+
+describe("determineTargetValue", () => {
+  const expected = { prop1: "prop1" };
+  const spyOnIsValid = jest.spyOn(utils, "isValidValue");
+  beforeEach(() => spyOnIsValid.mockReset());
+  it("Should always return targetValue for inclusive filtering", () => {
+    spyOnIsValid.mockReturnValueOnce(false).mockReturnValueOnce(false);
+    expect(determineTargetValue(expected, "include", false)).toEqual(expected);
+    expect(determineTargetValue(expected, "include", true)).toEqual(expected);
+  });
+  it("Should always return targetValue for exclude and non-recursive filterings", () => {
+    spyOnIsValid.mockReturnValueOnce(true).mockReturnValueOnce(false);
+    expect(determineTargetValue(expected, "include", false)).toEqual(expected);
+    expect(determineTargetValue(expected, "include", false)).toEqual(expected);
+  });
+  it("Should return targetValue for exclude recursive filterings, if value is valid", () => {
+    spyOnIsValid.mockReturnValueOnce(true);
+    expect(determineTargetValue(expected, "exclude", true)).toEqual(expected);
+  });
+  it("Should return empty object for recursive exclude filterings, if value is not valid", () => {
+    spyOnIsValid.mockReturnValueOnce(false);
+    expect(determineTargetValue(expected, "exclude", true)).toEqual({});
   });
 });

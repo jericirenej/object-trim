@@ -172,7 +172,7 @@ const singleLevelFilter: SingleLevelIncludeFilter = ({
  * the filteredObject. Primitive values and excluded object types can be assigned,
  * as they are not filtered themselves.
  */
-const isValidValue = (val: any): boolean => {
+export const isValidValue = (val: any): boolean => {
   const primitives = ["string", "number", "boolean", "bigint", "symbol"];
   if (val === null || val === undefined) return true;
   if (primitives.some(primitiveType => typeof val === primitiveType))
@@ -185,7 +185,7 @@ const isValidValue = (val: any): boolean => {
  * filtered object. Inclusive filtering returns the sourceObjectValue directly, while
  * exclusive filtering returns the value, if its type passes validity checks.
  */
-const determineTargetValue = <T>(
+export const determineTargetValue = <T>(
   targetValue: T,
   filterType: ValidTypes,
   recursive = true
