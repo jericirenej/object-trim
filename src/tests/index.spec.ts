@@ -1,3 +1,4 @@
+import * as index from "../index";
 import objectFilter, { ObjectFilterArgs, type ValidTypes } from "../index";
 import * as utils from "../utils";
 import mockTestObjects from "./mockTestObjects";
@@ -59,22 +60,26 @@ describe("objectFilter", () => {
       expect(keys.length).toBe(expectedLength);
       filters.forEach(key => expect(keys.includes(key)).toBe(false));
     });
-    it("Should properly parse a string filters argument", () => {
-      const filters = "one";
-      const expectedLength = objKeys.length - 1;
-      const filteredObj = objectFilter({
-        targetObject,
-        filters,
-        filterType: "exclude",
-      });
-      expect(Object.keys(filteredObj).length).toBe(expectedLength);
-    });
     it("Should default to 'exclude' type, if filterType is not passed", () => {
       const filteredObj = objectFilter({
         targetObject,
         filters: "one",
       });
       expect(Object.keys(filteredObj).length).toBe(objKeys.length - 1);
+    });
+    it("Should default to recursive filtering, if recursive argument not passed", () => {
+      const spyOnRecursiveFilter = jest.spyOn(index, "recursiveFilter");
+      objectFilter({targetObject,filters: "one",});
+      expect(spyOnRecursiveFilter.mock.calls.flat()[0]["recursive"]).toBe(true);
+      spyOnRecursiveFilter.mockClear();
+    });
+    it("Should respect recursive argument, if passed", () => {
+      const spyOnRecursiveFilter = jest.spyOn(index, "recursiveFilter");
+      [false,true].forEach(recursive => {
+        objectFilter({targetObject,filters: "one", recursive});
+        expect(spyOnRecursiveFilter.mock.calls.flat()[0]["recursive"]).toBe(recursive);
+        spyOnRecursiveFilter.mockClear();
+      })
     });
     it("Should return original object, if an invalid filterType is passed", () => {
       const filteredObj = objectFilter({
@@ -83,28 +88,6 @@ describe("objectFilter", () => {
         filterType: "invalidType" as ValidTypes,
       });
       expect(filteredObj).toStrictEqual(targetObject);
-    });
-  });
-  describe("Regex filtering", () => {
-    beforeEach(() => jest.clearAllMocks());
-    it("Should return properly filtered object", () => {
-      const targetObject = {
-        one: "one",
-        tWo: "tWo",
-        anotherProperty: "anotherProperty",
-      };
-      const exampleArgs: ObjectFilterArgs = {
-        targetObject,
-        regexFilters: [/one/i, /two/i],
-        filterType: "exclude",
-      };
-      const [keysExclude, keysInclude] = [
-        Object.keys(objectFilter(exampleArgs)),
-        Object.keys(objectFilter({ ...exampleArgs, filterType: "include" })),
-      ];
-
-      expect(keysExclude).toStrictEqual(["anotherProperty"]);
-      expect(keysInclude).toStrictEqual(["one", "tWo"]);
     });
   });
   describe("Both filter groups should play nice with each other", () => {
@@ -146,10 +129,11 @@ describe("objectFilter", () => {
     expect(keysExclude).toStrictEqual(expectedExclude);
     expect(keysInclude).toStrictEqual(expectedInclude);
   });
+  //!MISSING or redundant!
   it("Filters that do not match any keys should not influence result", () => {});
 });
 
-describe("Test recursive filtering", () => {
+describe("Recursive filtering", () => {
   const targetProp = "targetProp";
   const otherProp = "otherProp";
   const thirdProp = "thirdProp";
@@ -204,6 +188,7 @@ describe("Test recursive filtering", () => {
       expect(filteredObj).toStrictEqual(expected);
     });
   });
+  //! REDUNDANT? Can be covered with mock variations?
   it("Should not filter within arrays, maps, and sets", () => {
     const arr = [1, 2, targetProp],
       set = new Set([1, 2, targetProp]),
@@ -255,10 +240,10 @@ describe("Variation mock testing", () => {
         recursive,
         regexFilters,
       });
-      /*  expect(filtered).toStrictEqual(expected); */
-      if (JSON.stringify(filtered) !== JSON.stringify(expected)) {
+      expect(filtered).toStrictEqual(expected);
+      /* if (JSON.stringify(filtered) !== JSON.stringify(expected)) {
         console.log(mockObject.tag, filtered, mockObject.expected);
-      }
+      } */
     });
   });
 });
