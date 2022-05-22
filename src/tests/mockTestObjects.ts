@@ -17,26 +17,31 @@ const [
   secondProp,
   thirdProp,
   firstName,
+  firmName,
   surname,
-  details,
+  description,
+  brand,
   address,
   city,
-  street,
-  streetNumber,
   country,
+  street,
+  houseNumber,
   favorites,
   food,
   sport,
   book,
   order,
+  product,
   price,
 ] = [
   "firstProp",
   "secondProp",
   "thirdProp",
   "firstName",
+  "firmName",
   "surname",
-  "details",
+  "description",
+  "brand",
   "address",
   "city",
   "street",
@@ -47,6 +52,7 @@ const [
   "sport",
   "book",
   "order",
+  "product",
   "price",
 ];
 
@@ -161,6 +167,42 @@ const nestedWithExcludedType = {
     tag: "nestedWithExcludedTypesMock1",
   };
 
+const productShort = { product, price, brand, description };
+const subProducts: Record<string, any> = {};
+[0, 1, 2].forEach(
+  (val, index) => (subProducts[`product${index + 1}`] = productShort)
+);
+const productExample = {
+  ...productShort,
+  details: {
+    manufacturer: {
+      firmName,
+      address: { country, street, houseNumber },
+      otherProducts: {
+        ...subProducts,
+      },
+    },
+  },
+};
+const productExample1: TestObject = {
+  targetObject: productExample,
+  filterType: "exclude",
+  filters: ["price", "address"],
+  regexFilters: /^product[13579]$/,
+  expected: {
+    product,
+    brand,
+    description,
+    details: {
+      manufacturer: {
+        firmName,
+        otherProducts: { product2: { product, brand, description } },
+      },
+    },
+  },
+  tag: "productExample1",
+};
+
 const mockTestObjects: MockTestObjects = [
   flatObjectMock1,
   flatObjectMock2,
@@ -172,5 +214,6 @@ const mockTestObjects: MockTestObjects = [
   nestedFavoritesMock3,
   nestedFavoritesMock4,
   nestedWithExcludedTypeMock1,
+  productExample1,
 ];
 export default mockTestObjects;
