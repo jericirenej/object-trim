@@ -180,6 +180,20 @@ const isValidValue = (val: any): boolean => {
   return false;
 };
 
+/**On the basis of the sourceObject value, return a target value to be assigned to the
+ * filtered object. Inclusive filtering returns the sourceObjectValue directly, while
+ * exclusive filtering returns the value, if its type passes validity checks.
+ */
+const determineTargetValue = <T>(
+  targetValue: T,
+  filterType: ValidTypes
+): T | {} => {
+  if (filterType === "include") return targetValue;
+  const isTargetValid = isValidValue(targetValue);
+  if (isTargetValid) return targetValue;
+  return {};
+};
+
 const updateFilterObject: UpdateFilteredObject = ({
   matchedKeys,
   pathArray,
@@ -189,13 +203,8 @@ const updateFilterObject: UpdateFilteredObject = ({
 }) => {
   if (!pathArray.length) {
     matchedKeys.forEach(key => {
-      const targetVal = sourceObject[key];
-      if (filterType === "include") {
-        return (filteredObject[key] = targetVal);
-      }
-      return isValidValue(targetVal)
-        ? (filteredObject[key] = targetVal)
-        : (filteredObject[key] = {});
+      const targetVal = determineTargetValue(sourceObject[key], filterType);
+      filteredObject[key] = targetVal;
     });
     return;
   }
@@ -204,13 +213,8 @@ const updateFilterObject: UpdateFilteredObject = ({
       if (index === pathArray.length - 1) {
         composedObj[current] = {};
         matchedKeys.forEach(key => {
-          const targetVal = sourceObject[key];
-          if (filterType === "include") {
-            return (composedObj[current][key] = targetVal);
-          }
-          return isValidValue(targetVal)
-            ? (composedObj[current][key] = targetVal)
-            : (composedObj[current][key] = {});
+          const targetVal = determineTargetValue(sourceObject[key], filterType);
+          return (composedObj[current][key] = targetVal);
         });
       }
       return composedObj[current]
@@ -240,6 +244,7 @@ const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
   });
 };
 
+//TODO: Recursive filter should have an option to execute only once (to function as a non-recursive filter).
 export const recursiveFilter: ExtractProperty = ({
   filterKeys,
   regexKeys,
