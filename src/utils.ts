@@ -6,6 +6,7 @@ interface ExtractRecursiveArgs {
   filteredObject: Record<string, any>;
   pathArray: string[];
   filterType: ValidTypes;
+  recursive?: boolean;
 }
 
 type ExtractPropertyArgs = Omit<
@@ -186,9 +187,12 @@ const isValidValue = (val: any): boolean => {
  */
 const determineTargetValue = <T>(
   targetValue: T,
-  filterType: ValidTypes
+  filterType: ValidTypes,
+  recursive = true
 ): T | {} => {
-  if (filterType === "include") return targetValue;
+  // Inclusive and non-recursive exclusive filtering is greedy.
+  if (filterType === "include" || !recursive) return targetValue;
+  // Exclusive filtering only returns primitives and non-filterable object types
   const isTargetValid = isValidValue(targetValue);
   if (isTargetValid) return targetValue;
   return {};
@@ -200,10 +204,15 @@ const updateFilterObject: UpdateFilteredObject = ({
   filteredObject,
   sourceObject,
   filterType,
+  recursive,
 }) => {
   if (!pathArray.length) {
     matchedKeys.forEach(key => {
-      const targetVal = determineTargetValue(sourceObject[key], filterType);
+      const targetVal = determineTargetValue(
+        sourceObject[key],
+        filterType,
+        recursive
+      );
       filteredObject[key] = targetVal;
     });
     return;
@@ -211,6 +220,7 @@ const updateFilterObject: UpdateFilteredObject = ({
   if (matchedKeys.length) {
     pathArray.reduce((composedObj, current, index) => {
       if (index === pathArray.length - 1) {
+        // Initial empty object set to prevent access errors.
         composedObj[current] = {};
         matchedKeys.forEach(key => {
           const targetVal = determineTargetValue(sourceObject[key], filterType);
@@ -244,12 +254,12 @@ const determineSuccessorObjKeys: DetermineSuccessorObjKeys = ({
   });
 };
 
-//TODO: Recursive filter should have an option to execute only once (to function as a non-recursive filter).
 export const recursiveFilter: ExtractProperty = ({
   filterKeys,
   regexKeys,
   sourceObject,
   filterType,
+  recursive = true,
 }) => {
   const extractFunction = ({
     sourceObject,
@@ -257,6 +267,7 @@ export const recursiveFilter: ExtractProperty = ({
     regexKeys,
     pathArray,
     filteredObject,
+    recursive = true,
   }: ExtractRecursiveArgs): Record<string, any> => {
     const sourceObjKeys = Object.keys(sourceObject);
     const matchedKeys = singleLevelFilter({
@@ -275,10 +286,17 @@ export const recursiveFilter: ExtractProperty = ({
       matchedKeys: orderMatchedKeys(matchedToPass, sourceObjKeys),
       sourceObjKeys,
       filterType,
+      recursive,
     };
 
     updateFilterObject(updateArgs);
 
+    // Exit after first iteration, if recursive is set to false...
+    if (!recursive) {
+      return filteredObject;
+    }
+
+    //...Otherwise, continue with recursive execution.
     const successorObjKeys = determineSuccessorObjKeys({
       filterType,
       matchedKeys,
@@ -295,6 +313,7 @@ export const recursiveFilter: ExtractProperty = ({
         filteredObject,
         pathArray: newPathArray,
         filterType,
+        recursive,
       });
     });
     return filteredObject;
@@ -306,5 +325,6 @@ export const recursiveFilter: ExtractProperty = ({
     sourceObject,
     pathArray: [],
     filterType,
+    recursive,
   });
 };
