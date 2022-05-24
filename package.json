@@ -19,9 +19,10 @@
     "test": "jest",
     "dev": "tsc-watch",
     "prepublishOnly": "npm run compile",
-    "compile:mjs": "babel src --out-dir ./dist --extensions .ts --out-file-extension .mjs --config-file ./babel.config.cjs",
-    "compile:cjs": "babel src --out-dir ./dist --extensions .ts --out-file-extension .cjs --config-file ./babel.config.compat.cjs",
-    "compile": "npm run clean && npm run compile:mjs && npm run compile:cjs && tsc --emitDeclarationOnly",
+    "precompile":"npm run clean",
+    "compile:mjs": "set NODE_ENV=esmodule && babel src --out-dir ./dist --extensions .ts --out-file-extension .mjs",
+    "compile:cjs": "set NODE_ENV=commonjs && babel src --out-dir ./dist --extensions .ts --out-file-extension .cjs",
+    "compile": "npm run compile:mjs && npm run compile:cjs && tsc --emitDeclarationOnly",
     "build": "tsc",
     "clean": "rm -rf dist/*"
   },
