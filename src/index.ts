@@ -58,7 +58,7 @@ const objectFilter = ({
   });
 };
 
-export const recursiveFilter: ExtractProperty = ({
+const recursiveFilter: ExtractProperty = ({
   filterKeys,
   regexKeys,
   sourceObject,
