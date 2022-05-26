@@ -6,6 +6,7 @@ const {
   formatFilters,
   isValidValue,
   determineTargetValue,
+  determineSuccessorObjKeys,
 } = utils;
 
 const targetObject = { first: "first", second: "second" };
@@ -174,5 +175,34 @@ describe("determineTargetValue", () => {
   it("Should return empty object for recursive exclude filterings, if value is not valid", () => {
     spyOnIsValid.mockReturnValueOnce(false);
     expect(determineTargetValue(expected, "exclude", true)).toEqual({});
+  });
+});
+
+describe("determineSuccessorObjKeys", () => {
+  const sourceObject = {
+      prop1: "prop1",
+      targetProp1: { otherProp: "otherProp" },
+      arrayProp: [1, 2, 3],
+      dateProp: new Date(2022),
+      targetProp2: { otherProp: "otherProp" },
+    },
+    sourceObjKeys = Object.keys(sourceObject),
+    matchedKeys = ["targetProp2"];
+  const baseArgs = { sourceObject, sourceObjKeys, matchedKeys };
+  it("For include type: should return a list of non-primitive and non-excluded object type keys", () => {
+    expect(
+      determineSuccessorObjKeys({
+        filterType: "include",
+        ...baseArgs,
+      })
+    ).toEqual(["targetProp1", "targetProp2"]);
+  });
+  it("For exclude type: should return a list of non-primitive, non-matched, and non-excluded object type keys", () => {
+    expect(
+      determineSuccessorObjKeys({
+        filterType: "exclude",
+        ...baseArgs,
+      })
+    ).toEqual(["targetProp1"]);
   });
 });
