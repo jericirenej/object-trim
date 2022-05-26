@@ -7,6 +7,7 @@ const {
   isValidValue,
   determineTargetValue,
   determineSuccessorObjKeys,
+  updateFilterObject,
 } = utils;
 
 const targetObject = { first: "first", second: "second" };
@@ -155,6 +156,7 @@ describe("isValidValue", () => {
 });
 
 describe("determineTargetValue", () => {
+  afterAll(() => spyOnIsValid.mockRestore());
   const expected = { prop1: "prop1" };
   const spyOnIsValid = jest.spyOn(utils, "isValidValue");
   beforeEach(() => spyOnIsValid.mockReset());
@@ -175,6 +177,114 @@ describe("determineTargetValue", () => {
   it("Should return empty object for recursive exclude filterings, if value is not valid", () => {
     spyOnIsValid.mockReturnValueOnce(false);
     expect(determineTargetValue(expected, "exclude", true)).toEqual({});
+  });
+});
+
+describe("updateFilterObject", () => {
+  const familyTree = {
+    name: "John",
+    surname: "Doe",
+    parents: {
+      mother: {
+        name: "Mother",
+        surname: "Doe",
+        parents: {
+          mother: { name: "GrandMother", surname: "Doe" },
+          father: { name: "GrandFather", surname: "Doe" },
+        },
+      },
+    },
+  };
+  const pathArray = ["parents", "mother", "parents"];
+  let baseFilteredObject = {
+    name: "John",
+    surname: "Doe",
+    parents: {
+      mother: {
+        name: "Mother",
+        surname: "Doe",
+        parents: {},
+      },
+    },
+  };
+  const matchedKeys = ["mother"];
+  it("With include filterType in recursive mode: should assign complete matched object to nested filteredObject", () => {
+    const sourceObject = { ...familyTree.parents.mother.parents };
+    const filteredObject = JSON.parse(
+      JSON.stringify(baseFilteredObject)
+    ) as typeof baseFilteredObject;
+    updateFilterObject({
+      sourceObject,
+      pathArray,
+      matchedKeys,
+      filteredObject,
+      filterType: "include",
+      recursive: true,
+    });
+    expect(filteredObject.parents.mother.parents).toEqual({
+      mother: sourceObject.mother,
+    });
+  });
+  it("With exclude filterType in recursive mode: should assign empty matched object to nested filterObject", () => {
+    const sourceObject = { ...familyTree.parents.mother.parents };
+    const filteredObject = JSON.parse(
+      JSON.stringify(baseFilteredObject)
+    ) as typeof baseFilteredObject;
+    updateFilterObject({
+      sourceObject,
+      pathArray,
+      matchedKeys,
+      filteredObject,
+      filterType: "exclude",
+      recursive: true,
+    });
+    expect(filteredObject.parents.mother.parents).toEqual({ mother: {} });
+  });
+  it("With primitive values in recursive mode: should perform identical assignment for both filterTypes", () => {
+    const sourceObject = { ...familyTree.parents.mother.parents.mother };
+    const matchedKeys = ["name"];
+    const pathArray = ["parents", "mother", "parents", "mother"];
+    (["exclude", "include"] as ValidTypes[]).forEach(filterType => {
+      const filteredObject = JSON.parse(
+        JSON.stringify(baseFilteredObject)
+      ) as typeof baseFilteredObject;
+      updateFilterObject({
+        sourceObject,
+        filteredObject,
+        matchedKeys,
+        pathArray,
+        filterType,
+        recursive: true,
+      });
+      expect(filteredObject.parents.mother.parents).toEqual({
+        mother: { name: "GrandMother" },
+      });
+    });
+  });
+  it("With non-recursive filterings: should perform identical assignment for both filterTypes", () => {
+    const nestedProp = {
+      otherProp: "otherProp",
+      nestedProp: { subProp: "subProp" },
+    };
+    const sourceObject = {
+      firstProp: "firstProp",
+      nestedProp,
+      thirdProp: "thirdProp",
+    };
+    const matchedKeys = ["firstProp", "nestedProp"];
+    const expected = { firstProp: "firstProp", nestedProp };
+    (["exclude", "include"] as ValidTypes[]).forEach(filterType => {
+      const filteredObject: Record<string, any> = {};
+      updateFilterObject({
+        sourceObject,
+        filteredObject,
+        pathArray: [],
+        filterType,
+        matchedKeys,
+        recursive: false,
+      });
+      expect(filteredObject).toEqual(expected);
+    });
   });
 });
 

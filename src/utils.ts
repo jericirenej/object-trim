@@ -8,7 +8,6 @@ type SingleLevelIncludeFilter = (args: {
 
 type UpdateFilteredObject = (args: {
   matchedKeys: string[];
-  sourceObjKeys: string[];
   pathArray: string[];
   filteredObject: Record<string, any>;
   sourceObject: Record<string, any>;
