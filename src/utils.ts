@@ -7,7 +7,7 @@ type SingleLevelIncludeFilter = (args: {
 }) => string[];
 
 type UpdateFilteredObject = (args: {
-  matchedKeys: string[];
+  keysToInclude: string[];
   pathArray: string[];
   filteredObject: Record<string, any>;
   sourceObject: Record<string, any>;
@@ -151,7 +151,8 @@ export const singleLevelFilter: SingleLevelIncludeFilter = ({
       key => !matchedKeys.includes(key)
     );
   });
-  return matchedKeys;
+  const orderedKeys = orderMatchedKeys(matchedKeys, sourceObjKeys);
+  return orderedKeys;
 };
 
 /**Determine whether a matched sourceObject property value can be assigned to
@@ -183,8 +184,8 @@ export const determineTargetValue = <T>(
   return {};
 };
 
-export const updateFilterObject: UpdateFilteredObject = ({
-  matchedKeys,
+export const updateFilteredObject: UpdateFilteredObject = ({
+  keysToInclude,
   pathArray,
   filteredObject,
   sourceObject,
@@ -192,7 +193,7 @@ export const updateFilterObject: UpdateFilteredObject = ({
   recursive,
 }) => {
   if (!pathArray.length) {
-    matchedKeys.forEach(key => {
+    keysToInclude.forEach(key => {
       const targetVal = determineTargetValue(
         sourceObject[key],
         filterType,
@@ -202,12 +203,12 @@ export const updateFilterObject: UpdateFilteredObject = ({
     });
     return;
   }
-  if (matchedKeys.length) {
+  if (keysToInclude.length) {
     pathArray.reduce((composedObj, current, index) => {
       if (index === pathArray.length - 1) {
         // Initial empty object set to prevent access errors and clear previous values.
         composedObj[current] = {};
-        matchedKeys.forEach(key => {
+        keysToInclude.forEach(key => {
           const targetVal = determineTargetValue(sourceObject[key], filterType);
           return (composedObj[current][key] = targetVal);
         });

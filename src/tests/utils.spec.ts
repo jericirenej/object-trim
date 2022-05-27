@@ -7,7 +7,7 @@ const {
   isValidValue,
   determineTargetValue,
   determineSuccessorObjKeys,
-  updateFilterObject,
+  updateFilteredObject,
 } = utils;
 
 const targetObject = { first: "first", second: "second" };
@@ -129,7 +129,7 @@ describe("filterByRegex", () => {
       "ačpž",
     ];
     const expected = ["first", "firST", "second", "thesecond", "ačpž"];
-    expect(filterByRegex(targetKeys, formattedRegex)).toEqual(expected);
+    expect(filterByRegex(targetKeys, formattedRegex)).toStrictEqual(expected);
   });
 });
 
@@ -162,25 +162,25 @@ describe("determineTargetValue", () => {
   beforeEach(() => spyOnIsValid.mockReset());
   it("Should always return targetValue for inclusive filtering", () => {
     spyOnIsValid.mockReturnValueOnce(false).mockReturnValueOnce(false);
-    expect(determineTargetValue(expected, "include", false)).toEqual(expected);
-    expect(determineTargetValue(expected, "include", true)).toEqual(expected);
+    expect(determineTargetValue(expected, "include", false)).toStrictEqual(expected);
+    expect(determineTargetValue(expected, "include", true)).toStrictEqual(expected);
   });
   it("Should always return targetValue for exclude and non-recursive filterings", () => {
     spyOnIsValid.mockReturnValueOnce(true).mockReturnValueOnce(false);
-    expect(determineTargetValue(expected, "include", false)).toEqual(expected);
-    expect(determineTargetValue(expected, "include", false)).toEqual(expected);
+    expect(determineTargetValue(expected, "include", false)).toStrictEqual(expected);
+    expect(determineTargetValue(expected, "include", false)).toStrictEqual(expected);
   });
   it("Should return targetValue for exclude recursive filterings, if value is valid", () => {
     spyOnIsValid.mockReturnValueOnce(true);
-    expect(determineTargetValue(expected, "exclude", true)).toEqual(expected);
+    expect(determineTargetValue(expected, "exclude", true)).toStrictEqual(expected);
   });
   it("Should return empty object for recursive exclude filterings, if value is not valid", () => {
     spyOnIsValid.mockReturnValueOnce(false);
-    expect(determineTargetValue(expected, "exclude", true)).toEqual({});
+    expect(determineTargetValue(expected, "exclude", true)).toStrictEqual({});
   });
 });
 
-describe("updateFilterObject", () => {
+describe("updateFilteredObject", () => {
   const reducedFamilyTree = {
     name: "John",
     surname: "Doe",
@@ -215,21 +215,21 @@ describe("updateFilterObject", () => {
       },
     },
   };
-  const matchedKeys = ["mother"];
+  const keysToInclude = ["mother"];
   it("With include filterType in recursive mode: should assign complete matched object to nested filteredObject", () => {
     const sourceObject = { ...reducedFamilyTree.parents.mother.parents };
     const filteredObject = JSON.parse(
       JSON.stringify(baseFilteredObject)
     ) as typeof baseFilteredObject;
-    updateFilterObject({
+    updateFilteredObject({
       sourceObject,
       pathArray,
-      matchedKeys,
+      keysToInclude,
       filteredObject,
       filterType: "include",
       recursive: true,
     });
-    expect(filteredObject.parents.mother.parents).toEqual({
+    expect(filteredObject.parents.mother.parents).toStrictEqual({
       mother: sourceObject.mother,
     });
   });
@@ -238,33 +238,33 @@ describe("updateFilterObject", () => {
     const filteredObject = JSON.parse(
       JSON.stringify(baseFilteredObject)
     ) as typeof baseFilteredObject;
-    updateFilterObject({
+    updateFilteredObject({
       sourceObject,
       pathArray,
-      matchedKeys,
+      keysToInclude,
       filteredObject,
       filterType: "exclude",
       recursive: true,
     });
-    expect(filteredObject.parents.mother.parents).toEqual({ mother: {} });
+    expect(filteredObject.parents.mother.parents).toStrictEqual({ mother: {} });
   });
   it("With primitive values in recursive mode: should perform identical assignment for both filterTypes", () => {
     const sourceObject = { ...reducedFamilyTree.parents.mother.parents.mother };
-    const matchedKeys = ["name"];
+    const keysToInclude = ["name"];
     const pathArray = ["parents", "mother", "parents", "mother"];
     (["exclude", "include"] as ValidTypes[]).forEach(filterType => {
       const filteredObject = JSON.parse(
         JSON.stringify(baseFilteredObject)
       ) as typeof baseFilteredObject;
-      updateFilterObject({
+      updateFilteredObject({
         sourceObject,
         filteredObject,
-        matchedKeys,
+        keysToInclude,
         pathArray,
         filterType,
         recursive: true,
       });
-      expect(filteredObject.parents.mother.parents).toEqual({
+      expect(filteredObject.parents.mother.parents).toStrictEqual({
         mother: { name: "GrandMother" },
       });
     });
@@ -279,19 +279,19 @@ describe("updateFilterObject", () => {
       nestedProp,
       thirdProp: "thirdProp",
     };
-    const matchedKeys = ["firstProp", "nestedProp"];
+    const keysToInclude = ["firstProp", "nestedProp"];
     const expected = { firstProp: "firstProp", nestedProp };
     (["exclude", "include"] as ValidTypes[]).forEach(filterType => {
       const filteredObject: Record<string, any> = {};
-      updateFilterObject({
+      updateFilteredObject({
         sourceObject,
         filteredObject,
         pathArray: [],
         filterType,
-        matchedKeys,
+        keysToInclude,
         recursive: false,
       });
-      expect(filteredObject).toEqual(expected);
+      expect(filteredObject).toStrictEqual(expected);
     });
   });
 });
@@ -313,7 +313,7 @@ describe("determineSuccessorObjKeys", () => {
         filterType: "include",
         ...baseArgs,
       })
-    ).toEqual(["targetProp1", "targetProp2"]);
+    ).toStrictEqual(["targetProp1", "targetProp2"]);
   });
   it("For exclude type: should return a list of non-primitive, non-matched, and non-excluded object type keys", () => {
     expect(
@@ -321,6 +321,6 @@ describe("determineSuccessorObjKeys", () => {
         filterType: "exclude",
         ...baseArgs,
       })
-    ).toEqual(["targetProp1"]);
+    ).toStrictEqual(["targetProp1"]);
   });
 });

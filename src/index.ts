@@ -3,10 +3,8 @@
 import {
   determineSuccessorObjKeys,
   earlyReturnChecks,
-  formatFilters,
-  orderMatchedKeys,
-  singleLevelFilter,
-  updateFilterObject
+  formatFilters, singleLevelFilter,
+  updateFilteredObject
 } from "./utils.js";
 
 // Type declarations
@@ -87,13 +85,14 @@ export const recursiveFilter: ExtractProperty = ({
       sourceObject,
       filteredObject,
       pathArray,
-      matchedKeys: orderMatchedKeys(matchedToPass, sourceObjKeys),
+      keysToInclude: matchedToPass,
       sourceObjKeys,
       filterType,
       recursive,
     };
 
-    updateFilterObject(updateArgs);
+    // Run updater function which updates filteredObject as a side-effect.
+    updateFilteredObject(updateArgs);
 
     // Exit after first iteration, if recursive is set to false...
     if (!recursive) {
