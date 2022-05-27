@@ -181,12 +181,20 @@ describe("determineTargetValue", () => {
 });
 
 describe("updateFilterObject", () => {
-  const familyTree = {
+  const reducedFamilyTree = {
     name: "John",
     surname: "Doe",
     parents: {
       mother: {
         name: "Mother",
+        surname: "Doe",
+        parents: {
+          mother: { name: "GrandMother", surname: "Doe" },
+          father: { name: "GrandFather", surname: "Doe" },
+        },
+      },
+      father: {
+        name: "Father",
         surname: "Doe",
         parents: {
           mother: { name: "GrandMother", surname: "Doe" },
@@ -209,7 +217,7 @@ describe("updateFilterObject", () => {
   };
   const matchedKeys = ["mother"];
   it("With include filterType in recursive mode: should assign complete matched object to nested filteredObject", () => {
-    const sourceObject = { ...familyTree.parents.mother.parents };
+    const sourceObject = { ...reducedFamilyTree.parents.mother.parents };
     const filteredObject = JSON.parse(
       JSON.stringify(baseFilteredObject)
     ) as typeof baseFilteredObject;
@@ -226,7 +234,7 @@ describe("updateFilterObject", () => {
     });
   });
   it("With exclude filterType in recursive mode: should assign empty matched object to nested filterObject", () => {
-    const sourceObject = { ...familyTree.parents.mother.parents };
+    const sourceObject = { ...reducedFamilyTree.parents.mother.parents };
     const filteredObject = JSON.parse(
       JSON.stringify(baseFilteredObject)
     ) as typeof baseFilteredObject;
@@ -241,7 +249,7 @@ describe("updateFilterObject", () => {
     expect(filteredObject.parents.mother.parents).toEqual({ mother: {} });
   });
   it("With primitive values in recursive mode: should perform identical assignment for both filterTypes", () => {
-    const sourceObject = { ...familyTree.parents.mother.parents.mother };
+    const sourceObject = { ...reducedFamilyTree.parents.mother.parents.mother };
     const matchedKeys = ["name"];
     const pathArray = ["parents", "mother", "parents", "mother"];
     (["exclude", "include"] as ValidTypes[]).forEach(filterType => {

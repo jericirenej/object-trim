@@ -12,208 +12,195 @@ interface TestObject extends ObjectFilterArgs {
 
 type MockTestObjects = TestObject[];
 
-const [
-  firstProp,
-  secondProp,
-  thirdProp,
-  firstName,
-  firmName,
-  surname,
-  description,
-  brand,
-  address,
-  city,
-  country,
-  street,
-  houseNumber,
-  favorites,
-  food,
-  sport,
-  book,
-  order,
-  product,
-  price,
-] = [
-  "firstProp",
-  "secondProp",
-  "thirdProp",
-  "firstName",
-  "firmName",
-  "surname",
-  "description",
-  "brand",
-  "address",
-  "city",
-  "street",
-  "streetNumber",
-  "country",
-  "favorites",
-  "food",
-  "sport",
-  "book",
-  "order",
-  "product",
-  "price",
-];
+const johnDoe = { name: "John", surname: "Doe" },
+  juniorDoe = { name: "Junior", surname: "Doe" },
+  motherDoe = { name: "Mother", surname: "Doe" },
+  fatherDoe = { name: "Father", surname: "Doe" },
+  grandMotherDoe = { name: "GrandMother", surname: "Doe" },
+  grandFatherDoe = { name: "GrandFather", surname: "Doe" };
 
-const flatObjectExample = { firstProp, secondProp, thirdProp },
-  flatObjectMock1: TestObject = {
-    targetObject: flatObjectExample,
-    filters: "secondProp",
-    recursive: false,
-    filterType: "exclude",
-    expected: { firstProp, thirdProp },
-    tag: "flatObjectMock1",
-  },
-  flatObjectMock2: TestObject = {
-    ...flatObjectMock1,
-    filters: "invalid",
-    regexFilters: /invalid/,
-    expected: flatObjectExample,
-    tag: "flatObjectMock2",
-  },
-  flatObjectMock3: TestObject = {
-    ...flatObjectMock1,
-    filterType: "include",
-    expected: { secondProp },
-    tag: "flatObjectMock3",
-  },
-  flatObjectMock4: TestObject = {
-    ...flatObjectMock1,
-    filters: undefined,
-    regexFilters: /prop/i,
-    expected: {},
-    tag: "flatObjectMock4",
-  },
-  flatObjectMock5: TestObject = {
-    ...flatObjectMock3,
-    filterType: "include",
-    filters: undefined,
-    regexFilters: /ir/i,
-    expected: { firstProp, thirdProp },
-    tag: "flatObjectMock5",
-  };
-
-const nestedFavoritesExample = {
-    firstName,
-    surname,
-    favorites: { food, sport, book, person: { firstName, surname } },
-  },
-  nestedFavoritesMock1: TestObject = {
-    targetObject: nestedFavoritesExample,
-    recursive: false,
-    filterType: "exclude",
-    filters: ["firstName", "surname", "sport"],
-    expected: {
-      favorites: { food, sport, book, person: { firstName, surname } },
+const familyTree = {
+  ...johnDoe,
+  children: juniorDoe,
+  parents: {
+    mother: {
+      ...motherDoe,
+      children: johnDoe,
+      parents: {
+        mother: {
+          ...grandMotherDoe,
+          children: motherDoe,
+        },
+        father: {
+          ...grandFatherDoe,
+          children: motherDoe,
+        },
+      },
     },
-    tag: "nestedFavoritesMock1",
-  },
-  nestedFavoritesMock2: TestObject = {
-    targetObject: nestedFavoritesExample,
-    recursive: true,
-    filterType: "exclude",
-    filters: ["firstName", "sport"],
-    expected: { surname, favorites: { food, book, person: { surname } } },
-    tag: "nestedFavoritesMock2",
-  },
-  nestedFavoritesMock3: TestObject = {
-    ...nestedFavoritesMock2,
-    filters: undefined,
-    regexFilters: [/oo[^k]/, /name/i],
-    expected: { favorites: { sport, book, person: {} } },
-    tag: "nestedFavoritesMock3",
-  },
-  nestedFavoritesMock4: TestObject = {
-    ...nestedFavoritesMock3,
-    filters: "favorites",
-    filterType: "include",
-    expected: {
-      firstName,
-      surname,
-      favorites: { food, person: { firstName, surname } },
-    },
-    tag: "nestedFavoritesMock4",
-  };
-
-const mapAddress = new Map([
-  ["address", "address"],
-  ["city", "city"],
-]);
-const arrDetails = [{ favorites: { food, sport, book } }];
-
-const nestedWithExcludedType = {
-    firstName,
-    surname,
-    objDetails: { favorites: { food, sport, book } },
-    arrDetails,
-    objAddress: { address, city },
-    mapAddress,
-  },
-  nestedWithExcludedTypeMock1: TestObject = {
-    targetObject: nestedWithExcludedType,
-    filterType: "exclude",
-    filters: ["address", "city"],
-    regexFilters: /oo[a-z]$/,
-    recursive: true,
-    expected: {
-      firstName,
-      surname,
-      objDetails: { favorites: { sport } },
-      arrDetails,
-      objAddress: {},
-      mapAddress,
-    },
-    tag: "nestedWithExcludedTypesMock1",
-  };
-
-const productShort = { product, price, brand, description };
-const subProducts: Record<string, any> = {};
-[0, 1, 2].forEach(
-  (val, index) => (subProducts[`product${index + 1}`] = productShort)
-);
-const productExample = {
-  ...productShort,
-  details: {
-    manufacturer: {
-      firmName,
-      address: { country, street, houseNumber },
-      otherProducts: {
-        ...subProducts,
+    father: {
+      ...fatherDoe,
+      children: johnDoe,
+      parents: {
+        mother: {
+          ...grandMotherDoe,
+          children: fatherDoe,
+        },
+        father: {
+          ...grandFatherDoe,
+          children: fatherDoe,
+        },
       },
     },
   },
 };
-const productExample1: TestObject = {
-  targetObject: productExample,
+
+const familyFlatTestExclude: TestObject = {
+  targetObject: familyTree,
+  recursive: false,
   filterType: "exclude",
-  filters: ["price", "address"],
-  regexFilters: /^product[13579]$/,
+  filters: ["parents", "children"],
+  expected: { name: "John", surname: "Doe" },
+  tag: "familyFlatTestExclude",
+};
+const familyFlatTestInclude: TestObject = {
+  ...familyFlatTestExclude,
+  filterType: "include",
+  filters: "parents",
+  expected: { parents: familyTree.parents },
+  tag: "familyFlatTestExclude",
+};
+const familyFlatWithRedundantFilter: TestObject = {
+  ...familyFlatTestExclude,
+  filters: ["parents", "shmarents"],
+  filterType: "include",
+  expected: { parents: familyTree.parents },
+  tag: "familyFlatWithRedundantFilter",
+};
+
+const familyRecursiveIncludeChildren: TestObject = {
+  targetObject: familyTree,
+  recursive: true,
+  regexFilters: /child/,
+  filterType: "include",
   expected: {
-    product,
-    brand,
-    description,
-    details: {
-      manufacturer: {
-        firmName,
-        otherProducts: { product2: { product, brand, description } },
+    children: juniorDoe,
+    parents: {
+      mother: {
+        children: johnDoe,
+        parents: {
+          mother: { children: motherDoe },
+          father: { children: motherDoe },
+        },
+      },
+      father: {
+        children: johnDoe,
+        parents: {
+          mother: { children: fatherDoe },
+          father: { children: fatherDoe },
+        },
       },
     },
   },
-  tag: "productExample1",
+  tag: "familyRecursiveIncludeChildren",
+};
+
+const familyRecursiveExcludeChildren: TestObject = {
+  ...familyRecursiveIncludeChildren,
+  filterType: "exclude",
+  expected: {
+    ...johnDoe,
+    parents: {
+      mother: {
+        ...motherDoe,
+        parents: {
+          mother: { ...grandMotherDoe },
+          father: { ...grandFatherDoe },
+        },
+      },
+      father: {
+        ...fatherDoe,
+        parents: {
+          mother: { ...grandMotherDoe },
+          father: { ...grandFatherDoe },
+        },
+      },
+    },
+  },
+  tag: "familyRecursiveExcludeChildren",
+};
+
+const familyRecursiveIncludeChildrenAndName: TestObject = {
+  ...familyRecursiveIncludeChildren,
+  filters: ["name"],
+  expected: {
+    name: johnDoe.name,
+    children: { name: juniorDoe.name },
+    parents: {
+      mother: {
+        name: motherDoe.name,
+        children: { name: johnDoe.name },
+        parents: {
+          father: {
+            name: grandFatherDoe.name,
+            children: { name: motherDoe.name },
+          },
+          mother: {
+            name: grandMotherDoe.name,
+            children: { name: motherDoe.name },
+          },
+        },
+      },
+      father: {
+        name: fatherDoe.name,
+        children: { name: johnDoe.name },
+        parents: {
+          father: {
+            name: grandFatherDoe.name,
+            children: { name: fatherDoe.name },
+          },
+          mother: {
+            name: grandMotherDoe.name,
+            children: { name: fatherDoe.name },
+          },
+        },
+      },
+    },
+  },
+  tag: "familyRecursiveIncludeChildrenAndName",
+};
+
+const familyRecursiveExcludeChildrenAndName: TestObject = {
+  ...familyRecursiveIncludeChildrenAndName,
+  filterType: "exclude",
+  expected: {
+    surname: johnDoe.surname,
+    parents: {
+      mother: {
+        surname: motherDoe.surname,
+        parents: {
+          father: { surname: grandFatherDoe.surname },
+          mother: { surname: grandMotherDoe.surname },
+        },
+      },
+      father: {
+        surname: fatherDoe.surname,
+        parents: {
+          father: { surname: grandFatherDoe.surname },
+          mother: { surname: grandMotherDoe.surname },
+        },
+      },
+    },
+  },
+  tag: "familyRecursiveExcludeChildrenAndName",
 };
 
 const mockTestObjects: MockTestObjects = [
-  flatObjectMock1,
-  flatObjectMock2,
-  flatObjectMock3,
-  flatObjectMock4,
-  flatObjectMock5,
-  nestedFavoritesMock1,
-  nestedFavoritesMock2,
-  nestedFavoritesMock3,
-  nestedFavoritesMock4,
-  nestedWithExcludedTypeMock1,
-  productExample1,
+  familyFlatTestExclude,
+  familyFlatTestInclude,
+  familyFlatWithRedundantFilter,
+  familyRecursiveIncludeChildren,
+  familyRecursiveExcludeChildren,
+  familyRecursiveIncludeChildrenAndName,
+  familyRecursiveExcludeChildrenAndName,
 ];
 export default mockTestObjects;
