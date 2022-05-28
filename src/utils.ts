@@ -30,15 +30,15 @@ export const EXCLUDED_TYPES = [
   Date,
   WeakMap,
   WeakSet,
+  Int8Array,
   Int16Array,
   Int32Array,
-  Int8Array,
-  BigInt64Array,
-  BigUint64Array,
+  Uint8Array,
   Uint16Array,
   Uint32Array,
-  Uint8Array,
   Uint8ClampedArray,
+  BigInt64Array,
+  BigUint64Array,
   ArrayBuffer,
   SharedArrayBuffer,
 ] as const;
@@ -169,16 +169,19 @@ export const isValidValue = (val: any): boolean => {
 };
 
 /**On the basis of the sourceObject value, return a target value to be assigned to the
- * filtered object. Inclusive filtering returns the sourceObjectValue directly, while
- * exclusive filtering returns the value, if its type passes validity checks.
+ * filtered object.
  */
 export const determineTargetValue = <T>(
   targetValue: T,
   filterType: ValidTypes,
   recursive = true
 ): T | {} => {
-  if (filterType === "include" || !recursive) return targetValue;
-  // Exclusive filtering only returns primitives and non-filterable object types
+   if (filterType === "include" || !recursive) return targetValue;
+  // Exclusive recursive filtering only returns primitives and non-filterable types.
+  // Otherwise, returns an empty object. REASON: in updateFilteredObject, only keys that
+  // should be included in the filteredObject are specifically assigned. 
+  // Meaning, If an included child property  itself contains excluded properties, 
+  // these would survice the next iteration of updateFilteredObject.
   const isTargetValid = isValidValue(targetValue);
   if (isTargetValid) return targetValue;
   return {};
