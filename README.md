@@ -7,8 +7,7 @@
 - Filter by a list names or regex filters.
 - Recursive filtering available.
   - Recursive filtering will not inspect (filter within) arrays, sets, maps, dates, and other in-built classes.
-## What's new (i.e. 1.3.* preview)
-**Note**: *All of these features have been implemented, but until the official 1.3.\* release is published to npm, they are only accessible via the repo or manual dist build.*
+## What's new in version 1.3
 - Completely reworked filtering logic. 
 - **Improved inclusive filtering**: you no longer have to specify all the properties that lead to the target property to be included. Specify only those that you want to keep and the algorithm does the rest!
 - Filtering is now recursive by default, if not specified otherwise.
