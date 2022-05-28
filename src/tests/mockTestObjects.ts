@@ -194,6 +194,67 @@ const familyRecursiveExcludeChildrenAndName: TestObject = {
   tag: "familyRecursiveExcludeChildrenAndName",
 };
 
+const someProp = "someProp";
+
+const deeplyNested = {
+  firstLevel: {
+    someProp,
+    secondLevel: {
+      arbitraryProp: "arbitraryProp",
+      someProp,
+      thirdLevel: {
+        someProp,
+        fourthLevel: {
+          someProp,
+          fifthLevel: {
+            sixthLevel: {
+              someProp,
+              otherProp: undefined,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const deeplyNestedInclude: TestObject = {
+  targetObject: deeplyNested,
+  filterType: "include",
+  regexFilters: /six.*el$/,
+  expected: {
+    firstLevel: {
+      secondLevel: {
+        thirdLevel: {
+          fourthLevel: {
+            fifthLevel: { sixthLevel: { someProp, otherProp: undefined } },
+          },
+        },
+      },
+    },
+  },
+  tag: "deeplyNestedInclude",
+};
+const deeplyNestedExclude: TestObject = {
+  ...deeplyNestedInclude,
+  filterType: "exclude",
+  regexFilters: /six.*el$/,
+  filters: "someProp",
+  expected: {
+    firstLevel: {
+      secondLevel: {
+        arbitraryProp: "arbitraryProp",
+        thirdLevel: {
+          fourthLevel: {
+            fifthLevel: {},
+          },
+        },
+      },
+    },
+  },
+  tag: "deeplyNestedExclude",
+};
+
 const mockTestObjects: MockTestObjects = [
   familyFlatTestExclude,
   familyFlatTestInclude,
@@ -202,5 +263,7 @@ const mockTestObjects: MockTestObjects = [
   familyRecursiveExcludeChildren,
   familyRecursiveIncludeChildrenAndName,
   familyRecursiveExcludeChildrenAndName,
+  deeplyNestedInclude,
+  deeplyNestedExclude,
 ];
 export default mockTestObjects;
