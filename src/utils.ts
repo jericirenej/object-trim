@@ -129,6 +129,9 @@ export const orderMatchedKeys = (
   return sourceObjKeys.filter(key => matchedKeys.includes(key));
 };
 
+/**Filter a single level of object properties.
+ * Filters by regex filters first, if available.
+ */
 export const singleLevelFilter: SingleLevelIncludeFilter = ({
   filterKeys,
   regexKeys,
@@ -169,24 +172,24 @@ export const isValidValue = (val: any): boolean => {
 };
 
 /**On the basis of the sourceObject value, return a target value to be assigned to the
- * filtered object.
- */
+ * filtered object.*/
 export const determineTargetValue = <T>(
   targetValue: T,
   filterType: ValidTypes,
   recursive = true
 ): T | {} => {
    if (filterType === "include" || !recursive) return targetValue;
-  // Exclusive recursive filtering only returns primitives and non-filterable types.
-  // Otherwise, returns an empty object. REASON: in updateFilteredObject, only keys that
-  // should be included in the filteredObject are specifically assigned. 
-  // Meaning, If an included child property  itself contains excluded properties, 
-  // these would survice the next iteration of updateFilteredObject.
+  /* For exclusive filtering with recursion only primitives and non-filterable types can be assigned.
+     Otherwise, it will return an empty object. REASON: in updateFilteredObject, only keys that
+     should be included are specifically assigned.  So, if an included property  itself contains 
+     excluded properties, these would be kept in the next iteration of updateFilteredObject. */
   const isTargetValid = isValidValue(targetValue);
   if (isTargetValid) return targetValue;
   return {};
 };
 
+/**Update the filteredObject with includedKeys. 
+ * Filtered object is updated as a side-effect. */
 export const updateFilteredObject: UpdateFilteredObject = ({
   keysToInclude,
   pathArray,
