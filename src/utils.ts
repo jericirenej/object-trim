@@ -30,15 +30,15 @@ export const EXCLUDED_TYPES = [
   Date,
   WeakMap,
   WeakSet,
+  Int8Array,
   Int16Array,
   Int32Array,
-  Int8Array,
-  BigInt64Array,
-  BigUint64Array,
+  Uint8Array,
   Uint16Array,
   Uint32Array,
-  Uint8Array,
   Uint8ClampedArray,
+  BigInt64Array,
+  BigUint64Array,
   ArrayBuffer,
   SharedArrayBuffer,
 ] as const;
@@ -129,6 +129,9 @@ export const orderMatchedKeys = (
   return sourceObjKeys.filter(key => matchedKeys.includes(key));
 };
 
+/**Filter a single level of object properties.
+ * Filters by regex filters first, if available.
+ */
 export const singleLevelFilter: SingleLevelIncludeFilter = ({
   filterKeys,
   regexKeys,
@@ -169,21 +172,24 @@ export const isValidValue = (val: any): boolean => {
 };
 
 /**On the basis of the sourceObject value, return a target value to be assigned to the
- * filtered object. Inclusive filtering returns the sourceObjectValue directly, while
- * exclusive filtering returns the value, if its type passes validity checks.
- */
+ * filtered object.*/
 export const determineTargetValue = <T>(
   targetValue: T,
   filterType: ValidTypes,
   recursive = true
 ): T | {} => {
-  if (filterType === "include" || !recursive) return targetValue;
-  // Exclusive filtering only returns primitives and non-filterable object types
+   if (filterType === "include" || !recursive) return targetValue;
+  /* For exclusive filtering with recursion only primitives and non-filterable types can be assigned.
+     Otherwise, it will return an empty object. REASON: in updateFilteredObject, only keys that
+     should be included are specifically assigned.  So, if an included property  itself contains 
+     excluded properties, these would be kept in the next iteration of updateFilteredObject. */
   const isTargetValid = isValidValue(targetValue);
   if (isTargetValid) return targetValue;
   return {};
 };
 
+/**Update the filteredObject with includedKeys. 
+ * Filtered object is updated as a side-effect. */
 export const updateFilteredObject: UpdateFilteredObject = ({
   keysToInclude,
   pathArray,
