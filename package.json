@@ -2,7 +2,7 @@
   "name": "@jericirenej/object-filter",
   "description": "Return an object with filtered properties based on a supplied list of filter keys. Exclude/include filtering options and recursive operation available.",
   "author": "Irenej Jeric",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "license": "ISC",
   "main": "./dist/index.cjs",
   "exports": {
