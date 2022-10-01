@@ -90,7 +90,7 @@ export const formatFilters = (
     if (regex instanceof RegExp) return regex;
     if (typeof regex === "string") return new RegExp(regex);
   };
-  let regexKeys: RegExp[] = [];
+  const regexKeys: RegExp[] = [];
 
   if (Array.isArray(regexFilters) && regexFilters.length) {
     regexFilters.forEach(regexFilter => {
@@ -113,7 +113,7 @@ export const filterByRegex = (
   objKeys: string[],
   regexKeys: RegExp[]
 ): string[] => {
-  let result: string[] = [];
+  const result: string[] = [];
   objKeys.filter(objKey => {
     regexKeys.forEach(regexKey => {
       if (regexKey.test(objKey)) result.push(objKey);
@@ -177,7 +177,7 @@ export const determineTargetValue = <T>(
   targetValue: T,
   filterType: ValidTypes,
   recursive = true
-): T | {} => {
+): T | Record<string,unknown> => {
    if (filterType === "include" || !recursive) return targetValue;
   /* For exclusive filtering with recursion only primitives and non-filterable types can be assigned.
      Otherwise, it will return an empty object. REASON: in updateFilteredObject, only keys that
