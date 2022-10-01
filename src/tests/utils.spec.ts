@@ -204,7 +204,7 @@ describe("updateFilteredObject", () => {
     },
   };
   const pathArray = ["parents", "mother", "parents"];
-  let baseFilteredObject = {
+  const baseFilteredObject = {
     name: "John",
     surname: "Doe",
     parents: {
