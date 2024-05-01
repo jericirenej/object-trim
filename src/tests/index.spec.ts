@@ -55,13 +55,6 @@ describe("Variation mock testing", () => {
         regexFilters,
       });
       expect(filtered).toStrictEqual(expected);
-      /*if (JSON.stringify(filtered) !== JSON.stringify(expected)) {
-        console.log(
-          mockObject.tag,
-          JSON.stringify(filtered, undefined, 1),
-          JSON.stringify(mockObject.expected, undefined, 1)
-        );
-      } */
     });
   });
 });

@@ -1,6 +1,6 @@
 module.exports = function configureBabel(api) {
   api.cache(true);
-  const esModule = process.env.NODE_ENV.trim() === "esmodule";
+  const esModule = process.env.NODE_ENV?.trim() === "esmodule";
   const config = {
     modules: esModule ? false : "cjs",
     extension: esModule ? "mjs" : "cjs",
